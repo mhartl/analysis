@@ -1,4 +1,5 @@
 import Mathlib.Tactic
+set_option trace.Meta.Tactic.simp.rewrite true
 
 /-!
 # Analysis I, Appendix A.1: Mathematical Statements
@@ -14,15 +15,31 @@ An introduction to mathematical statements.  Showcases some basic tactics and Le
 #check 2+2=5
 
 /-- Every well-formed statement is either true or false... -/
-example (P:Prop) : (P=true) ∨ (P=false) := by simp; tauto
+example (P:Prop) : (P=true) ∨ (P=false) := by
+  -- Here `simp` simplifies `(P=true) ∨ (P=false)` to
+  -- `P ∨ ¬P`. As an example, the second of these is derived as follows:
+  -- P = false ≡ P = False
+  --           ≡ P ↔ False
+  --           ≡ (P → F) ∧ (F → P)
+  --           ≡ (P → F) ∧ T
+  --           ≡ P → F              Identity law
+  --           ≡ ¬P ∨ F             Conditional law
+  --           ≡ ¬P                 Identity law
+  -- Combining this with the first part yields `P ∨ ¬P`,
+  -- which is tautologically true by the negation law (`tauto`).
+  simp
+  tauto
 
 /-- .. but not both. -/
-example (P:Prop) : ¬ ((P=true) ∧ (P=false)) := by simp
+example (P:Prop) : ¬ ((P=true) ∧ (P=false)) := by
+  simp
 
 -- Note: `P=true` and `P=false` simplify to `P` and `¬P` respectively.
 
 /-- To prove that a statement is true, it suffices to show that it is not false, -/
-example {P:Prop} (h: P ≠ false) : P = true := by simp; tauto
+example {P:Prop} (h: P ≠ false) : P = true := by
+  simp
+  tauto
 
 /-- while to show that a statement is false, it suffices to show that it is not true. -/
 example {P:Prop} (h: P ≠ true) : P = false := by simp; tauto
