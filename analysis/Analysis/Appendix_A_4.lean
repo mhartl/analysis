@@ -81,7 +81,7 @@ example : ∀ x, (3 < x ∧ x < 2) → (6 < 2*x ∧ 2*x < 4) := by
   intro x
   intro h
   obtain ⟨ h1, h2 ⟩ := h
-  -- the previous three lines can be golfed to `rintro x ⟨ h1, h2 ⟩`
+  -- the previous three lines can be golfed to `intro x ⟨ h1, h2 ⟩`
   constructor
   . linarith
   linarith

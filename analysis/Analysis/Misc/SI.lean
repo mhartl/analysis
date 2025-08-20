@@ -57,15 +57,15 @@ instance SI_dimensions.instSMul : SMul ℚ SI_dimensions where
 
 instance SI_dimensions.instModule : Module ℚ SI_dimensions where
   one_smul d := by
-    ext <;> simp [HSMul.hSMul, SMul.smul, One.one]
+    ext <;> simp [HSMul.hSMul, SMul.smul]
   mul_smul q₁ q₂ d := by
     ext <;> simp [HSMul.hSMul, SMul.smul, mul_assoc]
   smul_add q d₁ d₂ := by
-    ext <;> simp [HSMul.hSMul, SMul.smul, HAdd.hAdd, Add.add, add_smul] <;> simp [Rat.add_eq, mul_add]
+    ext <;> simp [HSMul.hSMul, SMul.smul, HAdd.hAdd, Add.add] <;> simp [Rat.add_eq, mul_add]
   smul_zero q := by
     ext <;> simp [HSMul.hSMul, SMul.smul, zero_eq]
   add_smul d₁ d₂ q := by
-    ext <;> simp [HAdd.hAdd, Add.add, HSMul.hSMul, SMul.smul, add_smul] <;> simp [Rat.add_eq, add_mul]
+    ext <;> simp [HAdd.hAdd, Add.add, HSMul.hSMul, SMul.smul] <;> simp [Rat.add_eq, add_mul]
   zero_smul d := by
     ext <;> simp [HSMul.hSMul, SMul.smul, zero_eq]
 

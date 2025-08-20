@@ -59,7 +59,7 @@ def equality_as_equiv_relation (X:Type) : Setoid X := {
 open Real in
 /-- Example A.7.1 -/
 example {x y:ℝ} (h:x = y) : 2*x = 2*y ∧ sin x = sin y ∧ ∀ z, x + z = y + z := by
-  refine ⟨ ?_, ?_, ?_ ⟩
+  split_ands
   . rw [h]
   . rw [h]
   intro z

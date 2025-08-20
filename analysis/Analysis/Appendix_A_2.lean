@@ -72,7 +72,7 @@ example : ((2+2:ℤ)=5) → (4=(10-4:ℤ)) := by
 /-- Theorem A.2.4 -/
 theorem theorem_A_2_4 (n:ℤ) : Even (n * (n+1)) := by
   have : Even n ∨ Odd n := Int.even_or_odd n
-  rcases this with heven | hodd
+  obtain heven | hodd := this  -- can also use `rcases this with heven | hodd`
   . exact Even.mul_right heven _
   have : Even (n+1) := Odd.add_one hodd
   exact Even.mul_left this _

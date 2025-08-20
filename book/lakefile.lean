@@ -1,9 +1,7 @@
 import Lake
 open Lake DSL
 
-require verso from git "https://github.com/leanprover/verso.git"@"main"
-require subverso from git
-  "https://github.com/leanprover/subverso.git" @ "79c973b07e2f43c4ac1cec720bbe20b4fbfbd0e9"
+require verso from git "https://github.com/leanprover/verso.git"@"v4.23.0-rc2"
 
 package "analysis-book" where
   version := v!"0.1.0"
@@ -227,7 +225,7 @@ target genLib (pkg) : Unit := do
     addTrace (← computeTrace <| TextFilePath.mk jsonFile)
 
     -- The module itself contains the literate page
-    let contents := s!"import AnalysisBook.LiterateModule\n\nset_option maxHeartbeats 100000000\n\nanalysis_page {declName} from {module} as {repr title}\n"
+    let contents := s!"import AnalysisBook.LiterateModule\n\nset_option maxHeartbeats 100000000\n\nset_option maxRecDepth 15000\n\nanalysis_page {declName} from {module} as {repr title}\n"
     addPureTrace contents "contents"
 
     buildFileUnlessUpToDate' mod.leanFile do

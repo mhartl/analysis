@@ -10,14 +10,12 @@ package «Analysis» where
 
 -- Require Mathlib (the comprehensive library of mathematics in Lean)
 require mathlib from git
-  "https://github.com/leanprover-community/mathlib4.git" @ "v4.20.1"
--- Needed to build book
-require subverso from git
-  "https://github.com/leanprover/subverso.git" @ "main"
-require MD4Lean from git
-  "https://github.com/acmepjz/md4lean" @ "main"
+  "https://github.com/leanprover-community/mathlib4.git" @ "v4.21.0"
 
-
+-- This library is needed to build the online version.
+-- If ../book/lakefile.lean requires verso @ "v4.X.Y", then this line should require
+-- subverso @ "verso-v4.X.Y".
+require subverso from git "https://github.com/leanprover/subverso" @ "verso-v4.23.0-rc2"
 
 @[default_target]
 lean_lib «Analysis» where
@@ -29,7 +27,7 @@ lean_exe "literate-extract" where
 
 meta if get_config? env = some "dev" then
 require «doc-gen4» from git
-  "https://github.com/leanprover/doc-gen4" @ "main"
+  "https://github.com/leanprover/doc-gen4" @ "v4.21.0"
 
 
 module_facet literate mod : System.FilePath := do

@@ -10,9 +10,9 @@ Some examples of proofs
 /-- Proposition A.3.1 -/
 example {A B C D: Prop} (hAC: A → C) (hCD: C → D) (hDB: D → B): A → B := by
   intro h
-  replace h := hAC h
-  replace h := hCD h
-  replace h := hDB h
+  apply hAC at h
+  apply hCD at h
+  apply hDB at h
   exact h
 
 /-- Proposition A.3.2 -/
@@ -53,8 +53,8 @@ example {r:ℝ} (h: 0 < r) (h': r < 1) : Summable (fun n:ℕ ↦ n * r^n) := by
     use 1
     intro b hb
     simp [show b ≠ 0 by linarith, show r ≠ 0 by linarith]
-  suffices hconv: Filter.Tendsto (fun n:ℕ ↦ r * ((n+1) / n)) Filter.atTop (nhds r)
-  . apply Filter.Tendsto.congr' _ hconv
+  suffices hconv: Filter.atTop.Tendsto (fun n:ℕ ↦ r * ((n+1) / n)) (nhds r)
+  . apply hconv.congr'
     simp [Filter.EventuallyEq, Filter.eventually_atTop]
     use 1
     intro b hb
@@ -63,18 +63,18 @@ example {r:ℝ} (h: 0 < r) (h': r < 1) : Summable (fun n:ℕ ↦ n * r^n) := by
     simp [abs_of_pos h, abs_of_pos hb1]
     field_simp
     ring_nf
-  suffices hconv : Filter.Tendsto (fun n:ℕ ↦ ((n+1:ℝ) / n)) Filter.atTop (nhds 1)
-  . convert Filter.Tendsto.const_mul r hconv
+  suffices hconv : Filter.atTop.Tendsto (fun n:ℕ ↦ ((n+1:ℝ) / n)) (nhds 1)
+  . convert hconv.const_mul r
     simp
-  suffices hconv : Filter.Tendsto (fun n:ℕ ↦ 1 + 1/(n:ℝ)) Filter.atTop (nhds 1)
-  . apply Filter.Tendsto.congr' _ hconv
+  suffices hconv : Filter.atTop.Tendsto (fun n:ℕ ↦ 1 + 1/(n:ℝ)) (nhds 1)
+  . apply hconv.congr'
     simp [Filter.EventuallyEq, Filter.eventually_atTop]
     use 1
     intro b hb
     have : (b:ℝ) > 0 := by norm_cast
     field_simp
-  suffices hconv : Filter.Tendsto (fun n:ℕ ↦ 1/(n:ℝ)) Filter.atTop (nhds 0)
-  . convert Filter.Tendsto.const_add 1 hconv
+  suffices hconv : Filter.atTop.Tendsto (fun n:ℕ ↦ 1/(n:ℝ)) (nhds 0)
+  . convert hconv.const_add 1
     simp
   exact tendsto_one_div_atTop_nhds_zero_nat
 
@@ -88,14 +88,14 @@ example {A B C D: Prop} (hAC: A → C) (hCD: C → D) (hDB: D → B): A → B :=
 
 /-- Proposition A.3.4 -/
 example {A B C D E F G H I:Prop} (hAE: A → E) (hEB: E ∧ B → F) (hADG : A → G → D) (hHI: H ∨ I) (hFHC : F ∧ H → C) (hAHG : A ∧ H → G) (hIG: I → G) (hIGC: G → C) : A ∧ B → C ∧ D := by
-  rintro ⟨ hA, hB ⟩
+  intro ⟨ hA, hB ⟩
   have hE : E := hAE hA
   have hF : F := hEB ⟨hE, hB⟩
   suffices hCG : C ∧ G
   . obtain ⟨ hC, hG ⟩ := hCG
     have hD : D := hADG hA hG
     exact ⟨hC, hD⟩
-  rcases hHI with hH | hI
+  obtain hH | hI := hHI
   . have hC := hFHC ⟨ hF, hH⟩
     have hG := hAHG ⟨hA, hH⟩
     exact ⟨hC, hG⟩

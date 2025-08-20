@@ -391,7 +391,7 @@ theorem Scalar.val_le {d:Dimensions} (x y:Scalar d) :
 noncomputable instance Scalar.instLinearOrder (d:Dimensions) : LinearOrder (Scalar d) where
   le_refl := by simp [val_le]
   le_trans := by simp [val_le]; intros; order
-  lt_iff_le_not_le := by simp [val_le]
+  lt_iff_le_not_ge := by simp [val_le]
   le_antisymm := by simp [val_le, ←val_inj]; intros; order
   le_total := by simp [val_le]; intros; apply LinearOrder.le_total
   toDecidableLE := Classical.decRel _
@@ -455,7 +455,7 @@ theorem Scalar.in_smul {d:Dimensions} (c:ℝ) (unit q:Scalar d) : unit.in (c •
 
 theorem Scalar.in_inj {d:Dimensions} (unit q₁ q₂:Scalar d) [h: NeZero unit] : unit.in q₁ = unit.in q₂ ↔ q₁ = q₂ := by
   simp [neZero_iff] at h
-  simp [←val_inj, in_def, h]
+  simp [←val_inj]
   field_simp
 
 

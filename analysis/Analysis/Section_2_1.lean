@@ -105,9 +105,9 @@ theorem Nat.six_ne_two : (6:Nat) ≠ 2 := by
 -- this proof is written to follow the structure of the original text.
   by_contra h
   change 5++ = 1++ at h
-  replace h := succ_cancel h
+  apply succ_cancel at h
   change 4++ = 0++ at h
-  replace h := succ_cancel h
+  apply succ_cancel at h
   have := four_ne
   contradiction
 

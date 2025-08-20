@@ -90,7 +90,7 @@ example : ∀ n:ℤ, ∃ m:ℤ, m > n := by
 
 example : ¬ ∃ m:ℤ, ∀ n:ℤ, m > n := by
   by_contra h
-  obtain ⟨m, hm⟩ := h
+  choose m hm using h -- `obtain ⟨m, hm⟩ := h` would also work here
   specialize hm (m+1)
   linarith
 

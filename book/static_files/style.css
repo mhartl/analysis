@@ -59,3 +59,8 @@ div.declaration {
     margin-top: 1em;
     margin-bottom: 1em;
 }
+
+/* HACK: disable wavy red underline for errors, because they are quite common in docstrings */
+.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *) {
+    text-decoration: none !important;
+}

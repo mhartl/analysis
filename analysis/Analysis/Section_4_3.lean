@@ -37,12 +37,10 @@ abbrev abs (x:ℚ) : ℚ := if x > 0 then x else (if x < 0 then -x else 0)
 theorem abs_of_pos {x: ℚ} (hx: 0 < x) : abs x = x := by simp [hx]
 
 /-- Definition 4.3.1 (Absolute value) -/
-theorem abs_of_neg {x: ℚ} (hx: x < 0) : abs x = -x := by
-  simp [abs, hx]
-  intros; linarith
+theorem abs_of_neg {x: ℚ} (hx: x < 0) : abs x = -x := by simp [abs, hx]; intros; linarith
 
 /-- Definition 4.3.1 (Absolute value) -/
-theorem abs_of_zero : abs 0 = 0 := by rfl
+theorem abs_of_zero : abs 0 = 0 := rfl
 
 /--
   (Not from textbook) This definition of absolute value agrees with the Mathlib one.
@@ -157,7 +155,7 @@ theorem close_mul_mul {ε δ x y z w:ℚ} (hε: ε ≥ 0) (hxy: ε.Close x y) (h
   calc
     _ = |a * z + b * x + a * b| := by rw [this]; congr; ring
     _ ≤ |a * z + b * x| + |a * b| := abs_add _ _
-    _ ≤ |a * z| + |b * x| + |a * b| := by gcongr; exact abs_add _ _
+    _ ≤ |a * z| + |b * x| + |a * b| := by gcongr; apply abs_add
     _ = |a| * |z| + |b| * |x| + |a| * |b| := by simp_rw [abs_mul]
     _ ≤ _ := by gcongr
 
@@ -207,12 +205,11 @@ theorem pow_abs (x:ℚ) (n:ℕ) : |x|^n = |x^n| := by sorry
   Here we use the Mathlib notion of integer exponentiation
 -/
 theorem zpow_neg (x:ℚ) (n:ℕ) : x^(-(n:ℤ)) = 1/(x^n) := by
-  simp only [ne_eq, _root_.zpow_neg, zpow_natCast, one_div]
+  simp only [_root_.zpow_neg, zpow_natCast, one_div]
 
 example (x:ℚ): x^(-3:ℤ) = 1/(x^3) := zpow_neg x 3
 
-example (x:ℚ): x^(-3:ℤ) = 1/(x*x*x) := by
-  convert zpow_neg x 3; ring
+example (x:ℚ): x^(-3:ℤ) = 1/(x*x*x) := by convert zpow_neg x 3; ring
 
 theorem pow_eq_zpow (x:ℚ) (n:ℕ): x^(n:ℤ) = x^n :=  zpow_natCast x n
 

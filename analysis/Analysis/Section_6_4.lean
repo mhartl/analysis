@@ -139,12 +139,10 @@ example : Example_6_4_9.liminf = ⊤ := by sorry
 theorem Sequence.gt_limsup_bounds {a:Sequence} {x:EReal} (h: x > a.limsup) :
     ∃ N ≥ a.m, ∀ n ≥ N, a n < x := by
   -- This proof is written to follow the structure of the original text.
-  unfold Sequence.limsup at h
+  unfold limsup at h
   simp [sInf_lt_iff] at h
   obtain ⟨aN, ⟨ N, ⟨ hN, haN ⟩ ⟩, ha ⟩ := h; use N
-  simp [hN]
-  simp [haN, Sequence.upperseq] at ha
-  intro n hn
+  simp [hN]; simp [haN, upperseq] at ha; intro n hn
   have hn' : n ≥ (a.from N).m := by simp [hN, hn]
   convert lt_of_le_of_lt ((a.from N).le_sup hn') ha using 1
   simp [hn, hN.trans hn]
@@ -161,8 +159,8 @@ theorem Sequence.lt_limsup_bounds {a:Sequence} {x:EReal} (h: x < a.limsup) {N:�
   have hx : x < a.upperseq N := by
     apply lt_of_lt_of_le h (sInf_le _)
     simp; use N
-  obtain ⟨ n, hn, hxn, _ ⟩ := Sequence.exists_between_lt_sup hx
-  simp [Sequence.from, hN] at hn; use n, hn
+  choose n hn hxn _ using exists_between_lt_sup hx
+  simp [hN] at hn; use n, hn
   convert gt_iff_lt.mpr hxn using 1
   simp [hn, hN.trans hn]
 
@@ -239,8 +237,8 @@ example : ((fun (n:ℕ) ↦ (2:ℝ)^(-(n:ℤ))):Sequence).TendsTo 0 := by
 
 abbrev Sequence.abs (a:Sequence) : Sequence where
   m := a.m
-  seq := fun n ↦ |a n|
-  vanish := by intro n hn; simp [a.vanish n hn]
+  seq n := |a n|
+  vanish n hn := by simp [a.vanish n hn]
 
 
 /-- Corollary 6.4.17 (Zero test for sequences) / Exercise 6.4.7 -/
@@ -254,28 +252,25 @@ theorem Sequence.tendsTo_zero_iff (a:Sequence) :
 -/
 theorem Sequence.finite_limsup_liminf_of_bounded {a:Sequence} (hbound: a.IsBounded) :
     (∃ L_plus:ℝ, a.limsup = L_plus) ∧ (∃ L_minus:ℝ, a.liminf = L_minus) := by
-  obtain ⟨ M, hMpos, hbound ⟩ := hbound
-  unfold Sequence.BoundedBy at hbound
+  choose M hMpos hbound using hbound
+  unfold BoundedBy at hbound
   have hlimsup_bound : a.limsup ≤ M := by
-    apply a.limsup_le_sup.trans
-    apply sup_le_upper
+    apply a.limsup_le_sup.trans (sup_le_upper _)
     intro n hN; simp
     exact (le_abs_self _).trans (hbound n)
   have hliminf_bound : -M ≤ a.liminf := by
-    apply LE.le.trans _ a.inf_le_liminf
-    apply inf_ge_lower
-    intro n hN; simp [←EReal.coe_neg]
-    rw [neg_le]
+    apply (inf_ge_lower _).trans a.inf_le_liminf
+    intro n hN; simp [←EReal.coe_neg]; rw [neg_le]
     exact (neg_le_abs _).trans (hbound n)
   constructor
   . use a.limsup.toReal
-    apply (EReal.coe_toReal _ _).symm
+    symm; apply EReal.coe_toReal
     . contrapose! hlimsup_bound; simp [hlimsup_bound]
     replace hliminf_bound := hliminf_bound.trans a.liminf_le_limsup
     contrapose! hliminf_bound; simp [hliminf_bound, ←EReal.coe_neg]
   use a.liminf.toReal
-  apply (EReal.coe_toReal _ _).symm
-  . replace hlimsup_bound := a.liminf_le_limsup.trans hlimsup_bound
+  symm; apply EReal.coe_toReal
+  . apply a.liminf_le_limsup.trans at hlimsup_bound
     contrapose! hlimsup_bound; simp [hlimsup_bound]
   contrapose! hliminf_bound; simp [hliminf_bound, ←EReal.coe_neg]
 
@@ -285,23 +280,20 @@ theorem Sequence.Cauchy_iff_convergent (a:Sequence) :
   -- This proof is written to follow the structure of the original text.
   refine ⟨ ?_, IsCauchy.convergent ⟩
   intro h
-  obtain ⟨ ⟨ L_plus, hL_plus ⟩, ⟨ L_minus, hL_minus ⟩ ⟩ :=
+  have ⟨ ⟨ L_plus, hL_plus ⟩, ⟨ L_minus, hL_minus ⟩ ⟩ :=
     finite_limsup_liminf_of_bounded (bounded_of_cauchy h)
   use L_minus
-  rw [tendsTo_iff_eq_limsup_liminf]
-  simp [hL_minus, hL_plus]
+  simp [tendsTo_iff_eq_limsup_liminf, hL_minus, hL_plus]
   have hlow : 0 ≤ L_plus - L_minus := by
     have := a.liminf_le_limsup
     simp [hL_minus, hL_plus] at this
     linarith
   have hup (ε:ℝ) (hε: ε>0) : L_plus - L_minus ≤ 2*ε := by
     specialize h ε hε
-    obtain ⟨ N, hN, hsteady ⟩ := h
+    choose N hN hsteady using h
     unfold Real.Steady Real.Close at hsteady
-    have hN0 : N ≥ (a.from N).m := by
-      simp [Sequence.from, hN]
-    have hN1 : (a.from N).seq N = a.seq N := by
-      simp [Sequence.from, hN]
+    have hN0 : N ≥ (a.from N).m := by simp [hN]
+    have hN1 : (a.from N).seq N = a.seq N := by simp [hN]
     have h1 : (a N - ε:ℝ) ≤ (a.from N).inf := by
       apply inf_ge_lower
       intro n hn; specialize hsteady n hn N hN0
@@ -325,7 +317,7 @@ theorem Sequence.Cauchy_iff_convergent (a:Sequence) :
     replace h4 := h4.trans h3
     rw [EReal.coe_le_coe_iff] at h1 h4
     linarith
-  rcases le_iff_lt_or_eq.mp hlow with hlow | hlow
+  obtain hlow | hlow := le_iff_lt_or_eq.mp hlow
   . specialize hup ((L_plus - L_minus)/3) (by positivity)
     linarith
   linarith

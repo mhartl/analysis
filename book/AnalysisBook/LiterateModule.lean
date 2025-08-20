@@ -19,7 +19,7 @@ partial def getCommentString' (pref : String) (hl : Highlighted) : m String := d
   let str := str.stripPrefix pref |>.stripSuffix "-/" |>.trim
   pure str
 where getString : Highlighted → m String
-  | .text txt => pure txt
+  | .text txt | .unparsed txt => pure txt
   | .tactics .. => throwError "Tactics found in module docstring!"
   | .point .. => pure ""
   | .span _ hl => getCommentString' pref hl
@@ -118,6 +118,8 @@ where
 
 open Verso.Genre.Blog Literate
 
+def codeOpts : CodeOpts := { contextName := `name }
+
 open Verso Doc Elab PartElabM in
 open Verso.Genre Blog in
 open Lean.Parser.Command in
@@ -131,7 +133,7 @@ partial def docFromModAndTerms
     match kind with
     | ``Lean.Parser.Module.header =>
       if config.header then
-        addBlock (← ``(Block.other (BlockExt.highlightedCode `name $(quote code)) Array.mkArray0))
+        addBlock (← ``(Block.other (BlockExt.highlightedCode codeOpts $(quote code)) Array.mkArray0))
       else pure ()
     | ``moduleDoc =>
       let str ← getModuleDocString code
@@ -172,28 +174,25 @@ partial def docFromModAndTerms
         match docCommentIdx with
         | some i =>
           let codeBefore ← ``(Block.other
-            (BlockExt.highlightedCode `name $(quote (Highlighted.seq s[:i]))) Array.mkArray0)
+            (BlockExt.highlightedCode codeOpts $(quote (Highlighted.seq s[:i]))) Array.mkArray0)
           let some ⟨mdBlocks⟩ := MD4Lean.parse (← getDocCommentString s[i]!)
             | throwError m!"Failed to parse Markdown: {← getDocCommentString s[i]!}"
           let docCommentBlocks ← mdBlocks.mapM (fun b => ofBlock tms b)
-          let codeAfter ←``(Block.other (BlockExt.highlightedCode `name $(quote (Highlighted.seq s[i+1:]))) Array.mkArray0)
+          let codeAfter ←``(Block.other (BlockExt.highlightedCode codeOpts $(quote (Highlighted.seq s[i+1:]))) Array.mkArray0)
           let blocks := #[codeBefore] ++ docCommentBlocks ++ #[codeAfter]
           addBlock (← ``(Block.other (BlockExt.htmlDiv "declaration") #[$blocks,*]))
         | none =>
           -- No docComment attached to declaration, render definition as usual
-          addBlock (← ``(Block.other (BlockExt.highlightedCode `name $(quote code)) Array.mkArray0))
-      | _ => addBlock (← ``(Block.other (BlockExt.highlightedCode `name $(quote code)) Array.mkArray0))
+          addBlock (← ``(Block.other (BlockExt.highlightedCode codeOpts $(quote code)) Array.mkArray0))
+      | _ => addBlock (← ``(Block.other (BlockExt.highlightedCode codeOpts $(quote code)) Array.mkArray0))
 
     | ``eval | ``evalBang | ``reduceCmd | ``print | ``printAxioms | ``printEqns | ``«where» | ``version | ``synth | ``check =>
-      addBlock (← ``(Block.other (BlockExt.highlightedCode `name $(quote code)) Array.mkArray0))
-      if let some (k, msg) := getFirstMessage code then
-        let sev := match k with
-          | .error => "error"
-          | .info => "information"
-          | .warning => "warning"
-        addBlock (← ``(Block.other (Blog.BlockExt.htmlDiv $(quote sev)) (Array.mkArray1 (Block.code $(quote msg)))))
+      addBlock (← ``(Block.other (BlockExt.highlightedCode codeOpts $(quote code)) Array.mkArray0))
+      if let some msg := getFirstMessage code then
+        let msg : Highlighted.Message := ⟨msg.1, msg.2⟩
+        addBlock (← ``(Block.other (Blog.BlockExt.message false $(quote msg) []) #[]))
     | _ =>
-      addBlock (← ``(Block.other (BlockExt.highlightedCode `name $(quote code)) Array.mkArray0))
+      addBlock (← ``(Block.other (BlockExt.highlightedCode codeOpts $(quote code)) Array.mkArray0))
   closePartsUntil 0 ⟨0⟩ -- TODO endPos?
 where
   arr (xs : Array Term) : PartElabM Term := do
@@ -240,7 +239,7 @@ where
   | .code str => do
     let codeStr := String.join str.toList
     if let some hl := tms[codeStr]? then
-      ``(Inline.other (InlineExt.highlightedCode `name $(quote hl)) #[])
+      ``(Inline.other (InlineExt.highlightedCode codeOpts $(quote hl)) #[])
     else
       ``(Inline.code $(quote <| String.join str.toList))
   | .em txt => do ``(Inline.emph $(← arr (← txt.mapM (ofInline tms))))
@@ -311,11 +310,11 @@ def elabAnalysisPage (x : Ident) (mod : Ident) (config : LitPageConfig) (title :
   let finished := st'.partContext.toPartFrame.close 0
   let finished :=
     -- Obey the Markdown convention of a single top-level header being the title of the document, if it's been followed
-    if let .mk _ _ _ meta #[] #[p] _ := finished then
+    if let .mk _ _ _ metadata #[] #[p] _ := finished then
       match p with
       | .mk t1 t2 t3 _ bs ps pos =>
         -- Propagate metadata fields
-        FinishedPart.mk t1 t2 t3 meta bs ps pos
+        FinishedPart.mk t1 t2 t3 metadata bs ps pos
       | _ => p
     else finished
 

@@ -122,8 +122,10 @@ def demoSite : Site := site AnalysisBook.Home /
 
 def baseUrl := "https://teorth.github.io/analysis/docs/"
 
-def linkTargets : Code.LinkTargets where
-  const name := .some <| s!"{baseUrl}find?pattern={name}#doc"
-  definition name := .some <| s!"{baseUrl}find?pattern={name}#doc"
+def linkTargets : Code.LinkTargets α where
+  const name _ := #[mkLink s!"{baseUrl}find?pattern={name}#doc"]
+  definition name _ := #[mkLink s!"{baseUrl}find?pattern={name}#doc"]
+where
+  mkLink href := {shortDescription := "doc", description := "API documentation", href}
 
 def main := blogMain theme demoSite (linkTargets := linkTargets)

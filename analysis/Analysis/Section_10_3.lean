@@ -17,25 +17,25 @@ Main constructions and results of this section:
 namespace Chapter10
 
 /-- Proposition 10.3.1 / Exercise 10.3.1 -/
-theorem derivative_of_monotone (X:Set ℝ) {x₀:ℝ} (hx₀: ClusterPt x₀ (Filter.principal (X \ {x₀})))
+theorem derivative_of_monotone (X:Set ℝ) {x₀:ℝ} (hx₀: ClusterPt x₀ (.principal (X \ {x₀})))
   {f:ℝ → ℝ} (hmono: Monotone f) (hderiv: DifferentiableWithinAt ℝ f X x₀) :
     derivWithin f X x₀ ≥ 0 := by
   sorry
 
-theorem derivative_of_antitone (X:Set ℝ) {x₀:ℝ} (hx₀: ClusterPt x₀ (Filter.principal (X \ {x₀})))
+theorem derivative_of_antitone (X:Set ℝ) {x₀:ℝ} (hx₀: ClusterPt x₀ (.principal (X \ {x₀})))
   {f:ℝ → ℝ} (hmono: Antitone f) (hderiv: DifferentiableWithinAt ℝ f X x₀) :
     derivWithin f X x₀ ≤ 0 := by
   sorry
 
 /-- Proposition 10.3.3 / Exercise 10.3.4 -/
 theorem strictMono_of_positive_derivative {a b:ℝ} (hab: a < b) {f:ℝ → ℝ}
-  (hderiv: DifferentiableOn ℝ f (Set.Icc a b)) (hpos: ∀ x ∈ Set.Ioo a b, derivWithin f (Set.Icc a b) x > 0) :
-    StrictMonoOn f (Set.Icc a b) := by
+  (hderiv: DifferentiableOn ℝ f (.Icc a b)) (hpos: ∀ x ∈ Set.Ioo a b, derivWithin f (.Icc a b) x > 0) :
+    StrictMonoOn f (.Icc a b) := by
   sorry
 
 theorem strictAnti_of_negative_derivative {a b:ℝ} (hab: a < b) {f:ℝ → ℝ}
-  (hderiv: DifferentiableOn ℝ f (Set.Icc a b)) (hneg: ∀ x ∈ Set.Ioo a b, derivWithin f (Set.Icc a b) x < 0) :
-    StrictAntiOn f (Set.Icc a b) := by
+  (hderiv: DifferentiableOn ℝ f (.Icc a b)) (hneg: ∀ x ∈ Set.Ioo a b, derivWithin f (.Icc a b) x < 0) :
+    StrictAntiOn f (.Icc a b) := by
   sorry
 
 /-- Example 10.3.2 -/

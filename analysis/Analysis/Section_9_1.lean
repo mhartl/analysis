@@ -61,9 +61,9 @@ example {a b: EReal} (h: a = b) : Set.Icc a a = {a} := by
 abbrev Real.adherent' (ε:ℝ) (x:ℝ) (X: Set ℝ) := ∃ y ∈ X, |x - y| ≤ ε
 
 /-- Example 9.1.7 -/
-example : (0.5:ℝ).adherent' 1.1 (Set.Ioo 0 1) := by sorry
+example : (0.5:ℝ).adherent' 1.1 (.Ioo 0 1) := by sorry
 
-example : ¬ (0.1:ℝ).adherent' 1.1 (Set.Ioo 0 1) := by sorry
+example : ¬ (0.1:ℝ).adherent' 1.1 (.Ioo 0 1) := by sorry
 
 example : (0.5:ℝ).adherent' 1.1 {1,2,3} := by sorry
 
@@ -73,27 +73,21 @@ namespace Chapter9
 /-- Definition 9.1.-/
 abbrev AdherentPt (x:ℝ) (X:Set ℝ) := ∀ ε > (0:ℝ), ε.adherent' x X
 
-example : AdherentPt 1 (Set.Ioo 0 1) := by sorry
+example : AdherentPt 1 (.Ioo 0 1) := by sorry
 
-example : ¬ AdherentPt 2 (Set.Ioo 0 1) := by sorry
+example : ¬ AdherentPt 2 (.Ioo 0 1) := by sorry
 
 /-- Definition 9.1.10 (Closure).  Here we identify this definition with the Mathilb version. -/
 theorem closure_def (X:Set ℝ) : closure X = { x | AdherentPt x X } := by
-  ext x
-  simp [Real.mem_closure_iff, AdherentPt, Real.adherent']
+  ext; simp [Real.mem_closure_iff, AdherentPt, Real.adherent']
   constructor <;> intro h ε hε
-  . obtain ⟨ y, hy, hxy ⟩ := h ε hε
-    refine ⟨ y, hy, ?_ ⟩
-    rw [abs_sub_comm]; linarith
-  obtain ⟨ y, hy, hxy ⟩ := h (ε/2) (half_pos hε)
-  refine ⟨ y, hy, ?_ ⟩
-  rw [abs_sub_comm]; linarith
+  all_goals choose y hy hxy using h _ (half_pos hε); exact ⟨ y, hy, by rw [abs_sub_comm]; linarith ⟩
 
 theorem closure_def' (X:Set ℝ) (x :ℝ) : x ∈ closure X ↔ AdherentPt x X := by
   simp [closure_def]
 
 /-- identification of `AdherentPt` with Mathlib's `ClusterPt` -/
-theorem AdherentPt_def (x:ℝ) (X:Set ℝ) : AdherentPt x X = ClusterPt x (Filter.principal X) := by
+theorem AdherentPt_def (x:ℝ) (X:Set ℝ) : AdherentPt x X = ClusterPt x (.principal X) := by
   rw [←closure_def', mem_closure_iff_clusterPt]
 
 /-- Lemma 9.1.11 / Exercise 9.1.2 -/
@@ -112,164 +106,149 @@ theorem closure_subset {X Y:Set ℝ} (h: X ⊆ Y): closure X ⊆ closure Y := by
 theorem closure_of_subset_closure {X Y:Set ℝ} (h: X ⊆ Y) (h' : Y ⊆ closure X): closure Y = closure X := by sorry
 
 /-- Lemma 9.1.12 -/
-theorem closure_of_Ioo {a b:ℝ} (h:a < b) : closure (Set.Ioo a b) = Set.Icc a b := by
+theorem closure_of_Ioo {a b:ℝ} (h:a < b) : closure (.Ioo a b) = .Icc a b := by
   -- This proof is written to follow the structure of the original text.
   ext x; simp [closure_def, AdherentPt, Real.adherent']
   constructor
   . intro h; contrapose! h
-    rcases le_or_gt a x with h' | h'
+    obtain h' | h' := le_or_gt a x
     . specialize h h'
       use x-b, by linarith
-      intro y ⟨ h1, h2 ⟩
-      apply lt_of_lt_of_le _ (le_abs_self _)
-      linarith
+      intro y ⟨ h1, h2 ⟩; observe : x-y ≤ |x-y|; linarith
     use a-x, by linarith
-    intro y ⟨ h1, h2 ⟩
-    apply lt_of_lt_of_le _ (neg_le_abs _)
-    linarith
+    intro y ⟨ h1, h2 ⟩; observe : -(x-y) ≤ |x-y|; linarith
   intro ⟨ h1, h2 ⟩
   by_cases ha : x = a
   . sorry
   by_cases hb : x = b
   . sorry
   intro ε hε
-  use x, ⟨ by contrapose! ha; linarith, by contrapose! hb; linarith ⟩
-  simp [le_of_lt hε]
+  use x, ⟨ by contrapose! ha; linarith, by contrapose! hb; linarith ⟩; simp; order
 
-theorem closure_of_Ioc {a b:ℝ} (h:a < b) : closure (Set.Ioc a b) = Set.Icc a b := by
+theorem closure_of_Ioc {a b:ℝ} (h:a < b) : closure (.Ioc a b) = .Icc a b := by
   sorry
 
-theorem closure_of_Ico {a b:ℝ} (h:a < b) : closure (Set.Ico a b) = Set.Icc a b := by
+theorem closure_of_Ico {a b:ℝ} (h:a < b) : closure (.Ico a b) = .Icc a b := by
   sorry
 
-theorem closure_of_Icc {a b:ℝ} (h:a ≤ b) : closure (Set.Icc a b) = Set.Icc a b := by
+theorem closure_of_Icc {a b:ℝ} (h:a ≤ b) : closure (.Icc a b) = .Icc a b := by
   sorry
 
-theorem closure_of_Ioi {a:ℝ} : closure (Set.Ioi a) = Set.Ici a := by
+theorem closure_of_Ioi {a:ℝ} : closure (.Ioi a) = .Ici a := by
   sorry
 
-theorem closure_of_Ici {a:ℝ} : closure (Set.Ici a) = Set.Ici a := by
+theorem closure_of_Ici {a:ℝ} : closure (.Ici a) = .Ici a := by
   sorry
 
-theorem closure_of_Iio {a:ℝ} : closure (Set.Iio a) = Set.Iic a := by
+theorem closure_of_Iio {a:ℝ} : closure (.Iio a) = .Iic a := by
   sorry
 
-theorem closure_of_Iic {a:ℝ} : closure (Set.Iic a) = Set.Iic a := by
+theorem closure_of_Iic {a:ℝ} : closure (.Iic a) = .Iic a := by
   sorry
 
-theorem closure_of_R : closure (Set.univ: Set ℝ) = Set.univ := by sorry
+theorem closure_of_R : closure (.univ: Set ℝ) = .univ := by sorry
 
 /-- Lemma 9.1.13 / Exercise 9.1.3 -/
 theorem closure_of_N :
-  closure ((fun n:ℕ ↦ (n:ℝ)) '' Set.univ) = ((fun n:ℕ ↦ (n:ℝ)) '' Set.univ) := by
+  closure ((fun n:ℕ ↦ (n:ℝ)) '' .univ) = ((fun n:ℕ ↦ (n:ℝ)) '' .univ) := by
     sorry
 
 /-- Lemma 9.1.13 / Exercise 9.1.3 -/
 theorem closure_of_Z :
-  closure ((fun n:ℤ ↦ (n:ℝ)) '' Set.univ) = ((fun n:ℤ ↦ (n:ℝ)) '' Set.univ) := by
+  closure ((fun n:ℤ ↦ (n:ℝ)) '' .univ) = ((fun n:ℤ ↦ (n:ℝ)) '' .univ) := by
     sorry
 
 /-- Lemma 9.1.13 / Exercise 9.1.3 -/
 theorem closure_of_Q :
-  closure ((fun n:ℚ ↦ (n:ℝ)) '' Set.univ) = Set.univ := by
+  closure ((fun n:ℚ ↦ (n:ℝ)) '' .univ) = .univ := by
     sorry
 
 /-- Lemma 9.1.14 / Exercise 9.1.5 -/
 theorem limit_of_AdherentPt (X: Set ℝ) (x:ℝ) :
-  AdherentPt x X ↔ ∃ a : ℕ → ℝ, (∀ n, a n ∈ X) ∧ Filter.Tendsto a Filter.atTop (nhds x) := by
+  AdherentPt x X ↔ ∃ a : ℕ → ℝ, (∀ n, a n ∈ X) ∧ Filter.atTop.Tendsto a (nhds x) := by
     sorry
 
 theorem AdherentPt.of_mem {X: Set ℝ} {x: ℝ} (h: x ∈ X) : AdherentPt x X := by
-  rw [limit_of_AdherentPt]
-  use fun _ ↦ x
-  simp [h]
+  rw [limit_of_AdherentPt]; use fun _ ↦ x; simp [h]
 
 /-- Definition 9.1.15.  Here we use the Mathlib definition. -/
 theorem isClosed_def (X:Set ℝ): IsClosed X ↔ closure X = X :=
   closure_eq_iff_isClosed.symm
 
 theorem isClosed_def' (X:Set ℝ): IsClosed X ↔ ∀ x, AdherentPt x X → x ∈ X := by
-  simp [isClosed_def, subset_antisymm_iff, subset_closure]
-  simp [closure_def]
-  rfl
+  simp [isClosed_def, subset_antisymm_iff, subset_closure]; simp [closure_def]; rfl
 
 /-- Examples 9.1.16 -/
-theorem Icc_closed {a b:ℝ} : IsClosed (Set.Icc a b) := by sorry
+theorem Icc_closed {a b:ℝ} : IsClosed (.Icc a b) := by sorry
 
 /-- Examples 9.1.16 -/
-theorem Ici_closed (a:ℝ) : IsClosed (Set.Ici a) := by sorry
+theorem Ici_closed (a:ℝ) : IsClosed (.Ici a) := by sorry
 
 /-- Examples 9.1.16 -/
-theorem Iic_closed (a:ℝ) : IsClosed (Set.Iic a) := by sorry
+theorem Iic_closed (a:ℝ) : IsClosed (.Iic a) := by sorry
 
 /-- Examples 9.1.16 -/
-theorem R_closed : IsClosed (Set.univ : Set ℝ) := by sorry
+theorem R_closed : IsClosed (.univ : Set ℝ) := by sorry
 
 /-- Examples 9.1.16 -/
-theorem Ico_not_closed {a b:ℝ} (h: a < b) : ¬ IsClosed (Set.Ico a b) := by sorry
+theorem Ico_not_closed {a b:ℝ} (h: a < b) : ¬ IsClosed (.Ico a b) := by sorry
 
 /-- Examples 9.1.16 -/
-theorem Ioc_not_closed {a b:ℝ} (h: a < b) : ¬ IsClosed (Set.Ioc a b) := by sorry
+theorem Ioc_not_closed {a b:ℝ} (h: a < b) : ¬ IsClosed (.Ioc a b) := by sorry
 
 /-- Examples 9.1.16 -/
-theorem Ioo_not_closed {a b:ℝ} (h: a < b) : ¬ IsClosed (Set.Ioo a b) := by sorry
+theorem Ioo_not_closed {a b:ℝ} (h: a < b) : ¬ IsClosed (.Ioo a b) := by sorry
 
 /-- Examples 9.1.16 -/
-theorem Ioi_not_closed (a:ℝ) : ¬ IsClosed (Set.Ioi a) := by sorry
+theorem Ioi_not_closed (a:ℝ) : ¬ IsClosed (.Ioi a) := by sorry
 
 /-- Examples 9.1.16 -/
-theorem Iio_not_closed (a:ℝ) : ¬ IsClosed (Set.Iio a) := by sorry
+theorem Iio_not_closed (a:ℝ) : ¬ IsClosed (.Iio a) := by sorry
 
 /-- Examples 9.1.16 -/
-theorem N_closed : IsClosed ((fun n:ℕ ↦ (n:ℝ)) '' Set.univ) := by sorry
+theorem N_closed : IsClosed ((fun n:ℕ ↦ (n:ℝ)) '' .univ) := by sorry
 
 /-- Examples 9.1.16 -/
-theorem Z_closed : IsClosed ((fun n:ℤ ↦ (n:ℝ)) '' Set.univ) := by sorry
+theorem Z_closed : IsClosed ((fun n:ℤ ↦ (n:ℝ)) '' .univ) := by sorry
 
 /-- Examples 9.1.16 -/
-theorem Q_not_closed : ¬ IsClosed ((fun n:ℚ ↦ (n:ℝ)) '' Set.univ) := by sorry
+theorem Q_not_closed : ¬ IsClosed ((fun n:ℚ ↦ (n:ℝ)) '' .univ) := by sorry
 
 /-- Corollary 9.1.17 -/
 theorem isClosed_iff_limits_mem (X: Set ℝ) :
-  IsClosed X ↔ ∀ (a:ℕ → ℝ) (L:ℝ), (∀ n, a n ∈ X) → Filter.Tendsto a Filter.atTop (nhds L) → L ∈ X := by
+  IsClosed X ↔ ∀ (a:ℕ → ℝ) (L:ℝ), (∀ n, a n ∈ X) → Filter.atTop.Tendsto a (nhds L) → L ∈ X := by
   rw [isClosed_def']
   constructor
-  . intro h _ L _ _
-    apply h L
-    rw [limit_of_AdherentPt]
-    solve_by_elim
-  intro _ _ hx
-  rw [limit_of_AdherentPt] at hx
-  obtain ⟨ _, _, _ ⟩ := hx
-  solve_by_elim
+  . intro h _ L _ _; apply h L; rw [limit_of_AdherentPt]; solve_by_elim
+  intro _ _ hx; rw [limit_of_AdherentPt] at hx; obtain ⟨ _, _, _ ⟩ := hx; solve_by_elim
 
 /-- Definition 9.1.18 (Limit points) -/
 abbrev LimitPt (x:ℝ) (X: Set ℝ) := AdherentPt x (X \ {x})
 
 /-- Identification with Mathlib's `AccPt`-/
-theorem LimitPt.iff_AccPt (x:ℝ) (X: Set ℝ) : LimitPt x X ↔ AccPt x (Filter.principal X) := by
+theorem LimitPt.iff_AccPt (x:ℝ) (X: Set ℝ) : LimitPt x X ↔ AccPt x (.principal X) := by
   rw [accPt_principal_iff_clusterPt,←AdherentPt_def]
 
 /-- Definition 9.1.18 (Isolated points) -/
 abbrev IsolatedPt (x:ℝ) (X: Set ℝ) := x ∈ X ∧ ∃ ε>0, ∀ y ∈ X \ {x}, |x-y| > ε
 
 /-- Example 9.1.19 -/
-example : AdherentPt 3 ((Set.Ioo 1 2) ∪ {3}) := by sorry
+example : AdherentPt 3 ((.Ioo 1 2) ∪ {3}) := by sorry
 
-example : ¬ LimitPt 3 ((Set.Ioo 1 2) ∪ {3}) := by sorry
+example : ¬ LimitPt 3 ((.Ioo 1 2) ∪ {3}) := by sorry
 
-example : IsolatedPt 3 ((Set.Ioo 1 2) ∪ {3}) := by sorry
+example : IsolatedPt 3 ((.Ioo 1 2) ∪ {3}) := by sorry
 
 /-- Remark 9.1.20 -/
 theorem LimitPt.iff_limit (x:ℝ) (X: Set ℝ) :
-  LimitPt x X ↔ ∃ a : ℕ → ℝ, (∀ n, a n ∈ X \ {x}) ∧ Filter.Tendsto a Filter.atTop (nhds x) := by
+  LimitPt x X ↔ ∃ a : ℕ → ℝ, (∀ n, a n ∈ X \ {x}) ∧ Filter.atTop.Tendsto a (nhds x) := by
   simp [limit_of_AdherentPt]
 
 
 open Filter in
 /-- This lemma is in more recent versions of Mathlib and can be deleted once Mathlib is updated. -/
 theorem tendsto_mul_add_inv_atTop_nhds_zero (a c : ℝ) (ha : a ≠ 0) :
-    Tendsto (fun x => (a * x + c)⁻¹) atTop (nhds 0) := by
+    atTop.Tendsto (fun x => (a * x + c)⁻¹) (nhds 0) := by
   obtain ha' | ha' := lt_or_gt_of_ne ha
   · exact tendsto_inv_atBot_zero.comp
       (tendsto_atBot_add_const_right _ c (tendsto_id.const_mul_atTop_of_neg ha'))
@@ -277,101 +256,86 @@ theorem tendsto_mul_add_inv_atTop_nhds_zero (a c : ℝ) (ha : a ≠ 0) :
       (tendsto_atTop_add_const_right _ c (tendsto_id.const_mul_atTop ha'))
 
 /-- Lemma 9.1.21 -/
-theorem mem_Icc_isLimit {a b x:ℝ} (h: a < b) (hx: x ∈ Set.Icc a b) : LimitPt x (Set.Icc a b) := by
+theorem mem_Icc_isLimit {a b x:ℝ} (h: a < b) (hx: x ∈ Set.Icc a b) : LimitPt x (.Icc a b) := by
   -- This proof is written to follow the structure of the original text, with some slight simplifications.
   simp at hx
   rw [LimitPt.iff_limit]
-  rcases le_iff_lt_or_eq.1 hx.2 with hxb | hxb
+  obtain hxb | hxb := le_iff_lt_or_eq.1 hx.2
   . use (fun n:ℕ ↦ (x + 1/(n+(b-x)⁻¹)))
     constructor
     . intro n; simp
       have : b - x > 0 := by linarith
       have : (b - x)⁻¹ > 0 := by positivity
       have : n + (b - x)⁻¹ > 0 := by linarith
-      refine ⟨ ⟨ ?_, ?_⟩, by linarith ⟩
-      . have : (n+(b - x)⁻¹)⁻¹ > 0 := by positivity
-        linarith
+      have : (n+(b - x)⁻¹)⁻¹ > 0 := by positivity
       have : (b-x)⁻¹ ≤ n + (b - x)⁻¹ := by linarith
       have : (n + (b - x)⁻¹)⁻¹ ≤ b-x := by rwa [inv_le_comm₀ (by positivity) (by positivity)]
-      linarith
-    convert Filter.Tendsto.const_add x (c := 0) _
-    . simp
+      refine ⟨ ⟨ ?_, ?_⟩, ?_ ⟩ <;> linarith
+    convert Filter.Tendsto.const_add x (c := 0) _; simp
     convert Filter.Tendsto.comp (f := fun (k:ℕ) ↦ (k:ℝ)) (g := fun k ↦ 1/(k+(b-x)⁻¹)) _ tendsto_natCast_atTop_atTop
-    convert tendsto_mul_add_inv_atTop_nhds_zero 1 (b - x)⁻¹ (by norm_num) using 2 with n
-    simp
+    convert tendsto_mul_add_inv_atTop_nhds_zero 1 (b - x)⁻¹ (by norm_num) using 2 with n; simp
   sorry
 
 
 
 
-theorem mem_Ico_isLimit {a b x:ℝ} (hx: x ∈ Set.Ico a b) : LimitPt x (Set.Ico a b) := by
+theorem mem_Ico_isLimit {a b x:ℝ} (hx: x ∈ Set.Ico a b) : LimitPt x (.Ico a b) := by
   sorry
 
-theorem mem_Ioc_isLimit {a b x:ℝ} (hx: x ∈ Set.Ioc a b) : LimitPt x (Set.Ioc a b) := by
+theorem mem_Ioc_isLimit {a b x:ℝ} (hx: x ∈ Set.Ioc a b) : LimitPt x (.Ioc a b) := by
   sorry
 
-theorem mem_Ioo_isLimit {a b x:ℝ} (hx: x ∈ Set.Ioo a b) : LimitPt x (Set.Ioo a b) := by
+theorem mem_Ioo_isLimit {a b x:ℝ} (hx: x ∈ Set.Ioo a b) : LimitPt x (.Ioo a b) := by
   sorry
 
-theorem mem_Ici_isLimit {a x:ℝ} (hx: x ∈ Set.Ici a) : LimitPt x (Set.Ici a) := by
+theorem mem_Ici_isLimit {a x:ℝ} (hx: x ∈ Set.Ici a) : LimitPt x (.Ici a) := by
   sorry
 
-theorem mem_Ioi_isLimit {a x:ℝ} (hx: x ∈ Set.Ioi a) : LimitPt x (Set.Ioi a) := by
+theorem mem_Ioi_isLimit {a x:ℝ} (hx: x ∈ Set.Ioi a) : LimitPt x (.Ioi a) := by
   sorry
 
-theorem mem_Iic_isLimit {a x:ℝ} (hx: x ∈ Set.Iic a) : LimitPt x (Set.Iic a) := by
+theorem mem_Iic_isLimit {a x:ℝ} (hx: x ∈ Set.Iic a) : LimitPt x (.Iic a) := by
   sorry
 
-theorem mem_Iio_isLimit {a x:ℝ} (hx: x ∈ Set.Iio a) : LimitPt x (Set.Iio a) := by
+theorem mem_Iio_isLimit {a x:ℝ} (hx: x ∈ Set.Iio a) : LimitPt x (.Iio a) := by
   sorry
 
-theorem mem_R_isLimit {x:ℝ} : LimitPt x (Set.univ) := by
+theorem mem_R_isLimit {x:ℝ} : LimitPt x (.univ) := by
   sorry
 
 /-- Definition 9.1.22.  We use here Mathlib's `Bornology.IsBounded`-/
 
-theorem isBounded_def (X: Set ℝ) : Bornology.IsBounded X ↔ ∃ M > 0, X ⊆ Set.Icc (-M) M := by
+theorem isBounded_def (X: Set ℝ) : Bornology.IsBounded X ↔ ∃ M > 0, X ⊆ .Icc (-M) M := by
   simp [isBounded_iff_forall_norm_le]
   constructor
-  . intro ⟨ C, hC ⟩
-    use (max C 1)
-    constructor
-    . apply lt_of_lt_of_le _ (le_max_right _ _)
-      norm_num
-    intro x hx; specialize hC x hx
-    rw [abs_le'] at hC
-    simp [hC.1, hC.2]
-    have := le_max_left C 1
-    linarith
-  intro ⟨ M, hM, hXM ⟩; use M; intro x hx
-  replace hXM := hXM hx
-  simp [abs_le'] at hXM ⊢
-  simp [hXM]
-  linarith [hXM.1]
+  . intro ⟨ C, hC ⟩; use (max C 1)
+    refine ⟨ lt_of_lt_of_le (by norm_num) (le_max_right _ _), ?_ ⟩
+    peel hC with x hx hC; rw [abs_le'] at hC; simp [hC.1]; linarith [le_max_left C 1]
+  intro ⟨ M, hM, hXM ⟩; use M; intro x hx; specialize hXM hx; simp_all [abs_le']; linarith [hXM.1]
 
 /-- Example 9.1.23 -/
-theorem Icc_bounded (a b:ℝ) : Bornology.IsBounded (Set.Icc a b) := by sorry
+theorem Icc_bounded (a b:ℝ) : Bornology.IsBounded (.Icc a b) := by sorry
 
 /-- Example 9.1.23 -/
-theorem Ici_unbounded (a: ℝ) : ¬ Bornology.IsBounded (Set.Ici a) := by sorry
+theorem Ici_unbounded (a: ℝ) : ¬ Bornology.IsBounded (.Ici a) := by sorry
 
 /-- Example 9.1.23 -/
-theorem N_unbounded (a: ℝ) : ¬ Bornology.IsBounded ((fun n:ℕ ↦ (n:ℝ)) '' Set.univ) := by sorry
+theorem N_unbounded (a: ℝ) : ¬ Bornology.IsBounded ((fun n:ℕ ↦ (n:ℝ)) '' .univ) := by sorry
 
 /-- Example 9.1.23 -/
-theorem Z_unbounded (a: ℝ) : ¬ Bornology.IsBounded ((fun n:ℤ ↦ (n:ℝ)) '' Set.univ) := by sorry
+theorem Z_unbounded (a: ℝ) : ¬ Bornology.IsBounded ((fun n:ℤ ↦ (n:ℝ)) '' .univ) := by sorry
 
 /-- Example 9.1.23 -/
-theorem Q_unbounded (a: ℝ) : ¬ Bornology.IsBounded ((fun n:ℚ ↦ (n:ℝ)) '' Set.univ) := by sorry
+theorem Q_unbounded (a: ℝ) : ¬ Bornology.IsBounded ((fun n:ℚ ↦ (n:ℝ)) '' .univ) := by sorry
 
 /-- Example 9.1.23 -/
-theorem R_unbounded (a: ℝ) : ¬ Bornology.IsBounded (Set.univ: Set ℝ) := by sorry
+theorem R_unbounded (a: ℝ) : ¬ Bornology.IsBounded (.univ: Set ℝ) := by sorry
 
 /-- Theorem 9.1.24 / Exercise 9.1.13 (Heine-Borel theorem for the line)-/
 theorem Heine_Borel (X: Set ℝ) :
   IsClosed X ∧ Bornology.IsBounded X ↔ ∀ a : ℕ → ℝ, (∀ n, a n ∈ X) →
   (∃ n : ℕ → ℕ, StrictMono n
-    ∧ ∃ L ∈ X, Filter.Tendsto (fun j ↦ a (n j)) Filter.atTop (nhds L)) := by
+    ∧ ∃ L ∈ X, Filter.atTop.Tendsto (fun j ↦ a (n j)) (nhds L)) := by
   sorry
 
 /-- Exercise 9.1.4 -/

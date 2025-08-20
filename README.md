@@ -21,7 +21,7 @@ In order to align the formalization with Mathlib conventions, a small number of 
   - Section 2.1: The Peano axioms ([Verso page](https://teorth.github.io/analysis/sec21/)) ([Documentation](https://teorth.github.io/analysis/docs/Analysis/Section_2_1.html)) ([Lean source](https://github.com/teorth/analysis/blob/main/analysis/Analysis/Section_2_1.lean))
   - Section 2.2: Addition ([Verso page](https://teorth.github.io/analysis/sec22/)) ([Documentation](https://teorth.github.io/analysis/docs/Analysis/Section_2_2.html)) ([Lean source](https://github.com/teorth/analysis/blob/main/analysis/Analysis/Section_2_2.lean))
   - Section 2.3: Multiplication ([Verso page](https://teorth.github.io/analysis/sec23/)) ([Documentation](https://teorth.github.io/analysis/docs/Analysis/Section_2_3.html)) ([Lean source](https://github.com/teorth/analysis/blob/main/analysis/Analysis/Section_2_3.lean))
-  - Chapter 2 epilogue: Isomorphism with the Mathlib natural numbers ([Verso page](https://teorth.github.io/analysis/sec2e/)) ([Documentation](https://teorth.github.io/analysis/docs/Analysis/Section_2_analysis/docs/.html)) ([Lean source](https://github.com/teorth/analysis/blob/main/analysis/Analysis/Section_2_epilogue.lean))
+  - Chapter 2 epilogue: Isomorphism with the Mathlib natural numbers ([Verso page](https://teorth.github.io/analysis/sec2e/)) ([Documentation](https://teorth.github.io/analysis/docs/Analysis/Section_2_epilogue.html)) ([Lean source](https://github.com/teorth/analysis/blob/main/analysis/Analysis/Section_2_epilogue.lean))
 - Chapter 3: Set theory
   - Section 3.1: Fundamentals ([Verso page](https://teorth.github.io/analysis/sec31/)) ([Documentation](https://teorth.github.io/analysis/docs/Analysis/Section_3_1.html)) ([Lean source](https://github.com/teorth/analysis/blob/main/analysis/Analysis/Section_3_1.lean))
   - Section 3.2: Russell's paradox ([Verso page](https://teorth.github.io/analysis/sec32/)) ([Documentation](https://teorth.github.io/analysis/docs/Analysis/Section_3_2.html)) ([Lean source](https://github.com/teorth/analysis/blob/main/analysis/Analysis/Section_3_2.lean))
@@ -162,9 +162,7 @@ More resource suggestions welcome!
 To build this project after [installing Lean](https://lean-lang.org/documentation/setup/) and cloning this repository, follow these steps:
 
 ```
-% cd analysis/
-% lake exe cache get
-% lake build
+% ./build.sh
 ```
 
 ### Building the project's web page
@@ -172,14 +170,20 @@ To build this project after [installing Lean](https://lean-lang.org/documentatio
 To build the project's web page after [installing Lean](https://lean-lang.org/documentation/setup/) and cloning this repository, follow these steps:
 
 ```
-% cd analysis/
-% lake exe cache get
-% lake -R -Kenv=dev build Analysis:docs
-% lake build
-% cd ../book/
-% lake exe analysis-book
-% cd ../
+% ./build-web.sh
 ```
 
 After this, `book/_site/` contains the project's web page.
 This can be served as a webpage by executing `python3 serve.py`
+
+### Updating the Lean/Mathlib version
+
+Because this project uses a deprecated method to conditionally require `doc-gen4`
+in order to update the version of Lean and Mathlib used in the project you need to:
+* edit the `analysis/lakefile.lean` to change the `require` lines for Mathlib and doc-gen4,
+  to pin to the tag corresponding to the next Lean version
+  (it is highly recommended that you update in incremental steps)
+* edit the `analysis/lean-toolchain` to change the Lean version to the next version
+* in `analysis/`, run `lake update -Kenv=dev`
+* this may have the side effect of setting your `lean-toolchain` to the *latest* Lean version;
+  if so, revert it to the intended version

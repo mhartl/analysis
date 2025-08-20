@@ -19,7 +19,7 @@ variable (m:Mass) (v:Speed) (F:Force) (p:Momentum) (E:Energy) (h:Length) (t:Time
 -- #check m + v -- fails to typecheck
 
 example (hv : v = 60 • kilo meter / hour) : (StandardUnit _).in v = 50/(3:ℝ) := by
-  simp [←Scalar.val_inj, hour, minute, kilo, meter, second, hv]
+  simp [hour, minute, kilo, meter, second, hv]
   norm_num
 
 example (first_law : F = m * a) (hm : m = 2 • kilogram) (ha : a = 3 • meter / second**2) : F = 6 • newton := by
@@ -27,11 +27,11 @@ example (first_law : F = m * a) (hm : m = 2 • kilogram) (ha : a = 3 • meter 
   norm_num
 
 example (kinetic: E = m * v**2 / 2) (hm : m = 2 • kilogram) (hv : v = 3 • meter / second) : joule.in E = 9 := by
-  simp [←Scalar.val_inj, kinetic, hm, hv, kilogram, meter, second, joule]
+  simp [kinetic, hm, hv, kilogram, meter, second, joule]
   norm_num
 
 example (ht : t = 3 • hour) : minute.in t = 180 := by
-  simp [←Scalar.val_inj, hour, minute, ht]
+  simp [hour, minute, ht]
   norm_num
 
 -- An example of how to use fractional units
@@ -44,10 +44,10 @@ example : sqrt_hertz**2 = hertz := by
   simp [←Scalar.val_inj, half_frequency_unit, frequency_unit, sqrt_hertz]
 
 example {w : SqrtFrequency} (hw : w = 2 • sqrt_hertz) : hertz.in (w**2) = 4 := by
-  simp [←Scalar.val_inj, half_frequency_unit, frequency_unit, hw]
+  simp [half_frequency_unit, frequency_unit, hw]
   norm_num
 
 /-- An example of a non-negative scalar type -/
-abbrev NNTemperature := { t:Temperature // t ≥ 0 }
+abbrev NNTemperature := { T:Temperature // T ≥ 0 }
 
 end SI
