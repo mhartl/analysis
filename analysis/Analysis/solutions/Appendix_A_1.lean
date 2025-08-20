@@ -17,15 +17,15 @@ An introduction to mathematical statements.  Showcases some basic tactics and Le
 /-- Every well-formed statement is either true or false... -/
 example (P:Prop) : (P=true) ∨ (P=false) := by
   -- Here `simp` simplifies `(P=true) ∨ (P=false)` to `P ∨ ¬P`.
-  -- As an example, the second of these is derived as follows:
-  -- P = false ≡ P = False
-  --           ≡ P ↔ False
-  --           ≡ (P → F) ∧ (F → P)
-  --           ≡ (P → F) ∧ T
-  --           ≡ P → F              Identity law
-  --           ≡ ¬P ∨ F             Conditional law
-  --           ≡ ¬P                 Identity law
-  -- Combining this with the first part yields `P ∨ ¬P`,
+  -- As an example, `P=false ≡ ¬P` is derived as follows:
+  -- P=false ≡ P = False
+  --         ≡ P ↔ False
+  --         ≡ (P → F) ∧ (F → P)
+  --         ≡ (P → F) ∧ T
+  --         ≡ P → F              Identity law
+  --         ≡ ¬P ∨ F             Conditional law
+  --         ≡ ¬P                 Identity law
+  -- Combining this with `P=true ≡ P` yields `P ∨ ¬P`,
   -- which is tautologically true by the negation law (`tauto`).
   simp
   tauto
