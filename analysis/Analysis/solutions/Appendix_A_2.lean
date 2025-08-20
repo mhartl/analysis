@@ -1,4 +1,5 @@
 import Mathlib.Tactic
+set_option trace.Meta.Tactic.simp.rewrite true
 
 /-!
 # Analysis I, Appendix A.2: Implication
@@ -43,6 +44,9 @@ example : ¬ ((2+2=4) → (4+4)=2) := by
   norm_num
 
 example {X Y: Prop} : (X → Y) ↔ (Y ≥ X) := by simp
+-- or
+example {X Y: Prop} : (X → Y) ↔ (Y ≥ X) := by tauto
+
 
 example {X Y: Prop} : (X → Y) ↔ ((¬X) ≥ ¬Y) := by simp; tauto
 
@@ -88,6 +92,8 @@ example : ∀ x:ℝ, x = 2 → x^2 = 4 := by
   norm_num
 
 example : ¬ ∀ x:ℝ, x^2 = 4 → x = 2 := by
+  -- Use the quantifier negation law and the conditional law
+  -- to get ∃ x, x^2 = 4 ∧ ¬x = 2
   simp
   use -2
   norm_cast
