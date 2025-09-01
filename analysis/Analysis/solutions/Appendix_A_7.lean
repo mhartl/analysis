@@ -38,6 +38,12 @@ example {X:Type} (x y:X) (h: x = y) : y = x := by
 example {X:Type} (x y z:X) (h1: x = y) (h2: y = z) : x = z := by
   rw [h1, h2]
 
+-- Alternate proof
+example {X:Type} (x y z:X) (h1: x = y) (h2: y = z) : x = z := by
+  trans
+  · apply h1
+  · apply h2
+
 #check Eq.trans
 
 /-- Substitution axiom -/
@@ -110,4 +116,4 @@ example {X:Type} {f:ℤ → X} (hf: f 12 = f 2) (n:ℤ) : NewInt.quot hf (n:NewI
 
 /-- Exercise A.7.1 -/
 example {a b c d:ℝ} (hab: a = b) (hcd : c = d) : a + d = b + c := by
-  sorry
+  rw [hab, hcd]

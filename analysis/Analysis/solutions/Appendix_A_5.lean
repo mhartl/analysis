@@ -29,7 +29,8 @@ example : (¬ ∃ s:Swans, isBlack s) = (∀ s:Swans, ¬ isBlack s) := by
 
 end SwanExample
 
-example : (¬ ∀ x, (0 < x ∧ x < Real.pi/2) → Real.cos x ≥ 0) = (∃ x, (0 < x ∧ x < Real.pi/2) ∧ Real.cos x < 0) := by
+example : (¬ ∀ x, (0 < x ∧ x < Real.pi/2) → Real.cos x ≥ 0) =
+            (∃ x, (0 < x ∧ x < Real.pi/2) ∧ Real.cos x < 0) := by
   simp
   simp_rw [and_assoc]
 
