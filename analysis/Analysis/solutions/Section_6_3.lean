@@ -123,21 +123,17 @@ theorem lim_of_exp {x:ℝ} (hpos: 0 < x) (hbound: x < 1) :
   -- This proof is written to follow the structure of the original text.
   set a := ((fun (n:ℕ) ↦ x^n):Sequence)
   have why : a.IsAntitone := sorry
-  have hbound : a.BddBelowBy 0 := by intro n hn; positivity
+  have hbound : a.BddBelowBy 0 := by intro n _; positivity
   have hbound' : a.BddBelow := by use 0
   have hconv := a.convergent_of_antitone hbound' why
   set L := lim a
-  have : lim ((fun (n:ℕ) ↦ x^(n+1)):Sequence) = x * L := calc
-    _ = lim (x • ((fun (n:ℕ) ↦ x^n):Sequence)) := by
-      congr; ext n; rfl
-      by_cases h: n ≥ 0 <;> simp [h, pow_succ', HSMul.hSMul, SMul.smul]
-    _ = x * lim ((fun (n:ℕ) ↦ x^n):Sequence) := (Sequence.lim_smul x hconv).2
-    _ = _ := rfl
-  have why2 :lim ((fun (n:ℕ) ↦ x^(n+1)):Sequence) = lim ((fun (n:ℕ) ↦ x^n):Sequence) := by sorry
+  have : lim ((fun (n:ℕ) ↦ x^(n+1)):Sequence) = x * L := by
+    rw [←(a.lim_smul x hconv).2]; congr; ext n; rfl
+    simp [a, pow_succ', HSMul.hSMul, SMul.smul]
+  have why2 : lim ((fun (n:ℕ) ↦ x^(n+1)):Sequence) = lim ((fun (n:ℕ) ↦ x^n):Sequence) := by sorry
   convert_to x * L = 1 * L at why2; simp [a,L]
-  have hx : x ≠ 1 := by linarith
-  simp only [mul_eq_mul_right_iff, hx, false_or] at why2
-  simp [hconv, why2]
+  have hx : x ≠ 1 := by grind
+  simp_all [-one_mul]
 
 /-- Exercise 6.3.4 -/
 theorem lim_of_exp' {x:ℝ} (hbound: x > 1) : ¬((fun (n:ℕ) ↦ x^n):Sequence).Convergent := by sorry

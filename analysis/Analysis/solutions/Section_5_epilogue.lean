@@ -2,7 +2,7 @@ import Mathlib.Tactic
 import Analysis.Section_5_6
 
 /-!
-# Analysis I, Chapter 5 epilogue: Isomorphism with the Mathlib real numbers 
+# Analysis I, Chapter 5 epilogue: Isomorphism with the Mathlib real numbers
 
 In this (technical) epilogue, we show that the "Chapter 5" real numbers `Chapter5.Real` are
 isomorphic in various standard senses to the standard real numbers `ℝ`.  This we do by matching
@@ -15,6 +15,12 @@ subsequent chapters, in lieu of the `Chapter5.Real` API.
 Filling the sorries here requires both the Chapter5.Real API and the Mathlib API for the standard
 natural numbers `ℝ`.  As such, they are excellent exercises to prepare you for the aforementioned
 transition.
+
+## Tips from past users
+
+Users of the companion who have completed the exercises in this section are welcome to send their tips for future users in this section as PRs.
+
+- (Add tip here)
 
 -/
 
@@ -62,7 +68,7 @@ lemma DedekindCut.toReal_isLUB (c: DedekindCut) : IsLUB c.toSet_Real c.toReal :=
   ExtendedReal.sSup_of_bounded c.toSet_Real_nonempty c.toSet_Real_bounded
 
 noncomputable abbrev Real.equivCut : Real ≃ DedekindCut where
-  toFun := Real.toCut
+  toFun := toCut
   invFun := DedekindCut.toReal
   left_inv x := by
     sorry

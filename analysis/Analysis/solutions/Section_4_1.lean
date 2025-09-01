@@ -20,6 +20,12 @@ Main constructions and results of this section:
 
 - Equivalence with the Mathlib integers `_root_.Int` (or `ℤ`), which we will use going forward.
 
+## Tips from past users
+
+Users of the companion who have completed the exercises in this section are welcome to send their tips for future users in this section as PRs.
+
+- (Add tip here)
+
 -/
 
 namespace Section_4_1
@@ -36,7 +42,7 @@ instance PreInt.instSetoid : Setoid PreInt where
     symm := by sorry
     trans := by
       -- This proof is written to follow the structure of the original text.
-      intro ⟨ a,b ⟩ ⟨ c,d ⟩ ⟨ e,f ⟩ h1 h2; simp at h1 h2 ⊢
+      intro ⟨ a,b ⟩ ⟨ c,d ⟩ ⟨ e,f ⟩ h1 h2; simp_all
       have h3 := congrArg₂ (· + ·) h1 h2; simp at h3
       have : (a + f) + (c + d) = (e + b) + (c + d) := calc
         (a + f) + (c + d) = a + d + (c + f) := by abel
@@ -55,10 +61,8 @@ abbrev Int.formalDiff (a b:ℕ)  : Int := Quotient.mk PreInt.instSetoid ⟨ a,b 
 infix:100 " —— " => Int.formalDiff
 
 /-- Definition 4.1.1 (Integers) -/
-theorem Int.eq (a b c d:ℕ): a —— b = c —— d ↔ a + d = c + b := by
-  constructor
-  . exact Quotient.exact
-  intro h; exact Quotient.sound h
+theorem Int.eq (a b c d:ℕ): a —— b = c —— d ↔ a + d = c + b :=
+  ⟨ Quotient.exact, by intro h; exact Quotient.sound h ⟩
 
 /-- Decidability of equality -/
 instance Int.decidableEq : DecidableEq Int := by
@@ -71,9 +75,7 @@ instance Int.decidableEq : DecidableEq Int := by
   exact Quotient.recOnSubsingleton₂ a b this
 
 /-- Definition 4.1.1 (Integers) -/
-theorem Int.eq_diff (n:Int) : ∃ a b, n = a —— b := by
-  apply Quot.ind _ n; intro ⟨ a, b ⟩
-  use a, b; rfl
+theorem Int.eq_diff (n:Int) : ∃ a b, n = a —— b := by apply n.ind _; intro ⟨ a, b ⟩; use a, b
 
 /-- Lemma 4.1.3 (Addition well-defined) -/
 instance Int.instAdd : Add Int where
@@ -91,7 +93,7 @@ theorem Int.add_eq (a b c d:ℕ) : a —— b + c —— d = (a+c)——(b+d) :=
 /-- Lemma 4.1.3 (Multiplication well-defined) -/
 theorem Int.mul_congr_left (a b a' b' c d : ℕ) (h: a —— b = a' —— b') :
     (a*c+b*d) —— (a*d+b*c) = (a'*c+b'*d) —— (a'*d+b'*c) := by
-  simp only [eq] at h ⊢
+  simp only [eq] at *
   calc
     _ = c*(a+b') + d*(a'+b) := by ring
     _ = c*(a'+b) + d*(a+b') := by rw [h]
@@ -100,7 +102,7 @@ theorem Int.mul_congr_left (a b a' b' c d : ℕ) (h: a —— b = a' —— b') 
 /-- Lemma 4.1.3 (Multiplication well-defined) -/
 theorem Int.mul_congr_right (a b c d c' d' : ℕ) (h: c —— d = c' —— d') :
     (a*c+b*d) —— (a*d+b*c) = (a*c'+b*d') —— (a*d'+b*c') := by
-  simp only [eq] at h ⊢
+  simp only [eq] at *
   calc
     _ = a*(c+d') + b*(c'+d) := by ring
     _ = a*(c'+d) + b*(c+d') := by rw [h]
@@ -113,14 +115,12 @@ theorem Int.mul_congr {a b c d a' b' c' d' : ℕ} (h1: a —— b = a' —— b'
 
 instance Int.instMul : Mul Int where
   mul := Quotient.lift₂ (fun ⟨ a, b ⟩ ⟨ c, d ⟩ ↦ (a * c + b * d) —— (a * d + b * c)) (by
-    intro ⟨ a, b ⟩ ⟨ c, d ⟩ ⟨ a', b' ⟩ ⟨ c', d' ⟩ h1 h2
-    simp at h1 h2
+    intro ⟨ a, b ⟩ ⟨ c, d ⟩ ⟨ a', b' ⟩ ⟨ c', d' ⟩ h1 h2; simp at h1 h2
     convert mul_congr _ _ <;> simpa
     )
 
 /-- Definition 4.1.2 (Multiplication of integers) -/
-theorem Int.mul_eq (a b c d:ℕ) : a —— b * c —— d = (a*c+b*d) —— (a*d+b*c) :=
-  Quotient.lift₂_mk _ _ _ _
+theorem Int.mul_eq (a b c d:ℕ) : a —— b * c —— d = (a*c+b*d) —— (a*d+b*c) := Quotient.lift₂_mk _ _ _ _
 
 instance Int.instOfNat {n:ℕ} : OfNat Int n where
   ofNat := n —— 0
@@ -136,32 +136,27 @@ theorem Int.natCast_eq (n:ℕ) : (n:Int) = n —— 0 := rfl
 theorem Int.natCast_ofNat (n:ℕ) : ((ofNat(n):ℕ): Int) = ofNat(n) := by rfl
 
 @[simp]
-theorem Int.ofNat_inj (n m:ℕ) :
-    (ofNat(n) : Int) = (ofNat(m) : Int) ↔ ofNat(n) = ofNat(m) := by
-      simp only [ofNat_eq, eq, add_zero]
-      rfl
+theorem Int.ofNat_inj (n m:ℕ) : (ofNat(n) : Int) = (ofNat(m) : Int) ↔ ofNat(n) = ofNat(m) := by
+  simp only [ofNat_eq, eq, add_zero]; rfl
 
 @[simp]
-theorem Int.natCast_inj (n m:ℕ) :
-    (n : Int) = (m : Int) ↔ n = m := by
-      simp only [natCast_eq, eq, add_zero]
+theorem Int.natCast_inj (n m:ℕ) : (n : Int) = (m : Int) ↔ n = m := by
+  simp only [natCast_eq, eq, add_zero]
 
-example : 3 = 3 —— 0 := by rfl
+example : 3 = 3 —— 0 := rfl
 
-example : 3 = 4 —— 1 := by
-  rw [Int.ofNat_eq, Int.eq]
+example : 3 = 4 —— 1 := by rw [Int.ofNat_eq, Int.eq]
 
 /-- (Not from textbook) 0 is the only natural whose cast is 0 -/
 lemma Int.cast_eq_0_iff_eq_0 (n : ℕ) : (n : Int) = 0 ↔ n = 0 := by sorry
 
 /-- Definition 4.1.4 (Negation of integers) / Exercise 4.1.2 -/
 instance Int.instNeg : Neg Int where
-  neg := Quotient.lift (fun ⟨ a, b ⟩ ↦ b —— a) (by
-    sorry)
+  neg := Quotient.lift (fun ⟨ a, b ⟩ ↦ b —— a) (by sorry)
 
 theorem Int.neg_eq (a b:ℕ) : -(a —— b) = b —— a := rfl
 
-example : -(3 —— 5) = 5 —— 3 := by rfl
+example : -(3 —— 5) = 5 —— 3 := rfl
 
 abbrev Int.IsPos (x:Int) : Prop := ∃ (n:ℕ), n > 0 ∧ x = n
 abbrev Int.IsNeg (x:Int) : Prop := ∃ (n:ℕ), n > 0 ∧ x = -n
@@ -170,39 +165,32 @@ abbrev Int.IsNeg (x:Int) : Prop := ∃ (n:ℕ), n > 0 ∧ x = -n
 theorem Int.trichotomous (x:Int) : x = 0 ∨ x.IsPos ∨ x.IsNeg := by
   -- This proof is slightly modified from that in the original text.
   obtain ⟨ a, b, rfl ⟩ := eq_diff x
-  have := _root_.trichotomous (r := LT.lt) a b
-  rcases this with h_lt | h_eq | h_gt
-  . obtain ⟨ c,rfl ⟩ := Nat.exists_eq_add_of_lt h_lt
+  obtain h_lt | rfl | h_gt := _root_.trichotomous (r := LT.lt) a b
+  . obtain ⟨ c, rfl ⟩ := Nat.exists_eq_add_of_lt h_lt
     right; right; refine ⟨ c+1, by linarith, ?_ ⟩
-    simp_rw [natCast_eq, neg_eq, eq]
-    abel
-  . left; simp_rw [h_eq, ofNat_eq, eq, add_zero, zero_add]
+    simp_rw [natCast_eq, neg_eq, eq]; abel
+  . left; simp_rw [ofNat_eq, eq, add_zero, zero_add]
   obtain ⟨ c, rfl ⟩ := Nat.exists_eq_add_of_lt h_gt
   right; left; refine ⟨ c+1, by linarith, ?_ ⟩
-  simp_rw [natCast_eq, eq]
-  abel
+  simp_rw [natCast_eq, eq]; abel
 
 /-- Lemma 4.1.5 (trichotomy of integers)-/
 theorem Int.not_pos_zero (x:Int) : x = 0 ∧ x.IsPos → False := by
-  rintro ⟨ rfl, ⟨ n, hn, hn' ⟩ ⟩
-  simp [←natCast_ofNat] at hn'
-  linarith
+  rintro ⟨ rfl, ⟨ n, _, _ ⟩ ⟩; simp_all [←natCast_ofNat]
 
 /-- Lemma 4.1.5 (trichotomy of integers)-/
 theorem Int.not_neg_zero (x:Int) : x = 0 ∧ x.IsNeg → False := by
-  rintro ⟨ rfl, ⟨ n, hn, hn' ⟩ ⟩
-  simp_rw [←natCast_ofNat, natCast_eq, neg_eq, eq] at hn'
+  rintro ⟨ rfl, ⟨ n, _, hn ⟩ ⟩; simp_rw [←natCast_ofNat, natCast_eq, neg_eq, eq] at hn
   linarith
 
 /-- Lemma 4.1.5 (trichotomy of integers)-/
 theorem Int.not_pos_neg (x:Int) : x.IsPos ∧ x.IsNeg → False := by
-  rintro ⟨ ⟨ n, hn, rfl ⟩, ⟨ m, hm, hm' ⟩ ⟩
-  simp_rw [natCast_eq, neg_eq, eq] at hm'
+  rintro ⟨ ⟨ n, _, rfl ⟩, ⟨ m, _, hm ⟩ ⟩; simp_rw [natCast_eq, neg_eq, eq] at hm
   linarith
 
 /-- Proposition 4.1.6 (laws of algebra) / Exercise 4.1.4 -/
 instance Int.instAddGroup : AddGroup Int :=
-AddGroup.ofLeftAxioms (by sorry) (by sorry) (by sorry)
+  AddGroup.ofLeftAxioms (by sorry) (by sorry) (by sorry)
 
 /-- Proposition 4.1.6 (laws of algebra) / Exercise 4.1.4 -/
 instance Int.instAddCommGroup : AddCommGroup Int where
@@ -217,8 +205,7 @@ instance Int.instCommMonoid : CommMonoid Int where
     obtain ⟨ a, b, rfl ⟩ := eq_diff x
     obtain ⟨ c, d, rfl ⟩ := eq_diff y
     obtain ⟨ e, f, rfl ⟩ := eq_diff z
-    simp_rw [mul_eq]
-    congr 1 <;> ring
+    simp_rw [mul_eq]; congr 1 <;> ring
   one_mul := by sorry
   mul_one := by sorry
 
@@ -305,7 +292,7 @@ lemma Int.is_additive_identity_iff_eq_0 (b : Int) : (∀ a, a = a + b) ↔ b = 0
 instance Int.instLinearOrder : LinearOrder Int where
   le_refl := sorry
   le_trans := sorry
-  lt_iff_le_not_le := sorry
+  lt_iff_le_not_ge := sorry
   le_antisymm := sorry
   le_total := sorry
   toDecidableLE := decidableRel
@@ -342,6 +329,5 @@ abbrev Int.equivInt_ordered_ring : Int ≃+*o ℤ where
   map_add' := by sorry
   map_mul' := by sorry
   map_le_map_iff' := by sorry
-
 
 end Section_4_1

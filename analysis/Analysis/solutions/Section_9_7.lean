@@ -19,29 +19,26 @@ Main constructions and results of this section:
 namespace Chapter9
 
 /-- Theorem 9.7.1 (Intermediate value theorem) -/
-theorem intermediate_value {a b:ℝ} (hab: a < b) {f:ℝ → ℝ} (hf: ContinuousOn f (Set.Icc a b)) {y:ℝ} (hy: y ∈ Set.Icc (f a) (f b) ∨ y ∈ Set.Icc (f a) (f b)) :
+theorem intermediate_value {a b:ℝ} (hab: a < b) {f:ℝ → ℝ} (hf: ContinuousOn f (.Icc a b)) {y:ℝ} (hy: y ∈ Set.Icc (f a) (f b) ∨ y ∈ Set.Icc (f a) (f b)) :
   ∃ c ∈ Set.Icc a b, f c = y := by
   -- This proof is written to follow the structure of the original text.
-  rcases hy with hy_left | hy_right
-  . by_cases hya : y = f a
-    . use a; simp [hya, le_of_lt hab]
-    by_cases hyb : y = f b
-    . use b; simp [hyb, le_of_lt hab]
+  obtain hy_left | hy_right := hy
+  . by_cases hya : y = f a; use a; grind
+    by_cases hyb : y = f b; use b; grind
     simp at hy_left
-    replace hya : f a < y := by contrapose! hya; linarith
-    replace hyb : y < f b := by contrapose! hyb; linarith
+    replace hya : f a < y := by grind
+    replace hyb : y < f b := by grind
     set E := {x | x ∈ Set.Icc a b ∧ f x < y}
-    have hE : E ⊆ Set.Icc a b := by intro x ⟨hx₁, hx₂⟩; exact hx₁
-    have hE_bdd : BddAbove E := BddAbove.mono hE bddAbove_Icc
+    have hE : E ⊆ .Icc a b := fun x ⟨hx₁, hx₂⟩ ↦ hx₁
+    have hE_bdd : BddAbove E := bddAbove_Icc.mono hE
     have hEa : a ∈ E := by simp [E, hya, le_of_lt hab]
     have hE_nonempty : E.Nonempty := by use a
     set c := sSup E
     have hc : c ∈ Set.Icc a b := by
-      simp
-      constructor
-      . exact ConditionallyCompleteLattice.le_csSup _ _ hE_bdd hEa
+      simp; split_ands
+      . solve_by_elim [ConditionallyCompleteLattice.le_csSup]
       convert csSup_le_csSup bddAbove_Icc hE_nonempty hE
-      exact (csSup_Icc (le_of_lt hab)).symm
+      grind [csSup_Icc]
     use c, hc
     have hfc_upper : f c ≤ y := by
       have hxe (n:ℕ) : ∃ x ∈ E, c - 1/(n+1:ℝ) < x := by
@@ -51,36 +48,30 @@ theorem intermediate_value {a b:ℝ} (hab: a < b) {f:ℝ → ℝ} (hf: Continuou
       set x := fun n ↦ (hxe n).choose
       have hx1 (n:ℕ) : x n ∈ E := (hxe n).choose_spec.1
       have hx2 (n:ℕ) : c - 1/(n+1:ℝ) < x n := (hxe n).choose_spec.2
-      have : Filter.Tendsto x Filter.atTop (nhds c) := by
+      have : Filter.atTop.Tendsto x (nhds c) := by
         apply Filter.Tendsto.squeeze (g := fun j ↦ c - 1/(j+1:ℝ)) (h := fun j ↦ c) (f := x)
-        . convert Filter.Tendsto.const_sub c tendsto_one_div_add_atTop_nhds_zero_nat
-          simp
+        . convert tendsto_one_div_add_atTop_nhds_zero_nat.const_sub c;simp
         . exact tendsto_const_nhds
         . exact fun n ↦ le_of_lt (hx2 n)
         exact fun n ↦ ConditionallyCompleteLattice.le_csSup _ _ hE_bdd (hx1 n)
-      replace := Filter.Tendsto.comp_of_continuous hc (hf.continuousWithinAt hc) (fun n ↦ hE (hx1 n)) this
-      have hfxny (n:ℕ) : f (x n) ≤ y := by specialize hx1 n; simp [E] at hx1; exact le_of_lt hx1.2
+      replace := this.comp_of_continuous hc (hf.continuousWithinAt hc) (fun n ↦ hE (hx1 n))
+      have hfxny (n:ℕ) : f (x n) ≤ y := by specialize hx1 n; simp [E] at hx1; grind
       exact le_of_tendsto' this hfxny
-    have hne : c ≠ b := by
-      contrapose! hfc_upper
-      rwa [hfc_upper]
-    replace hne : c < b := by contrapose! hne; simp at hc; linarith
+    have hne : c < b := by grind
     have hfc_lower : y ≤ f c := by
       have : ∃ N:ℕ, ∀ n ≥ N, (c+1/(n+1:ℝ)) < b := by
-        obtain ⟨ N, hN ⟩ := exists_nat_gt (1/(b-c))
+        choose N hN using exists_nat_gt (1/(b-c))
         use N; intro n hn
         have hpos : 0 < b-c := by linarith
-        have : 1/(n+1:ℝ) < b-c := by
-          rw [one_div_lt (by positivity) (by positivity)]
-          apply hN.trans; norm_cast; linarith
+        have : 1/(n+1:ℝ) < b-c := by rw [one_div_lt] <;> (try positivity); apply hN.trans; norm_cast; linarith
         linarith
-      obtain ⟨ N, hN ⟩ := this
+      choose N hN using this
       have hmem : ∀ n ≥ N, (c + 1/(n+1:ℝ)) ∈ Set.Icc a b := by
         intro n hn
-        simp only [Set.mem_Icc, le_of_lt (hN n hn), and_true]
+        simp [-one_div, le_of_lt (hN n hn)]
         have : 1/(n+1:ℝ) > 0 := by positivity
         replace : c + 1/(n+1:ℝ) > c := by linarith
-        simp at hc; linarith
+        grind
       have : ∀ n ≥ N, c + 1/(n+1:ℝ) ∉ E := by
         intro n _
         have : 1/(n+1:ℝ) > 0 := by positivity
@@ -88,20 +79,18 @@ theorem intermediate_value {a b:ℝ} (hab: a < b) {f:ℝ → ℝ} (hf: Continuou
         solve_by_elim [notMem_of_csSup_lt]
       replace : ∀ n ≥ N, f (c + 1/(n+1:ℝ)) ≥ y := by
         intro n hn; specialize this n hn; contrapose! this
-        simp only [Set.mem_Icc, Set.mem_setOf_eq, E, this, le_of_lt (hN n hn), and_true]
+        simp [E]
         have := hmem n hn
-        simp only [Set.mem_Icc] at this
-        tauto
-      have hconv : Filter.Tendsto (fun n:ℕ ↦ c + 1/(n+1:ℝ)) Filter.atTop (nhds c) := by
-        convert Filter.Tendsto.const_add c tendsto_one_div_add_atTop_nhds_zero_nat
-        simp
+        simp_all
+      have hconv : Filter.atTop.Tendsto (fun n:ℕ ↦ c + 1/(n+1:ℝ)) (nhds c) := by
+        convert tendsto_one_div_add_atTop_nhds_zero_nat.const_add c; simp
       replace hf := (hf.continuousWithinAt hc).tendsto
       rw [nhdsWithin.eq_1] at hf
-      have hconv' : Filter.Tendsto (fun n:ℕ ↦ c + 1/(n+1:ℝ)) Filter.atTop (Filter.principal (Set.Icc a b)) := by
-        simp only [Filter.tendsto_principal, Filter.eventually_atTop]; use N
+      have hconv' : Filter.atTop.Tendsto (fun n:ℕ ↦ c + 1/(n+1:ℝ)) (.principal (.Icc a b)) := by
+        simp [-one_div, -Set.mem_Icc]; use N
       replace hconv' := Filter.tendsto_inf.mpr ⟨ hconv, hconv' ⟩
-      apply ge_of_tendsto (Filter.Tendsto.comp hf hconv') _
-      simp only [Function.comp_apply, Filter.eventually_atTop]; use N
+      apply ge_of_tendsto (hf.comp hconv') _
+      simp [-one_div]; use N
     linarith
   sorry
 
@@ -124,14 +113,14 @@ example : f_9_7_2 1 = 0 := by sorry
 example : ∃ x:ℝ, 0 ≤ x ∧ x ≤ 2 ∧ x^2 = 2 := by sorry
 
 /-- Corollary 9.7.4 (Images of continuous functions) / Exercise 9.7.1 -/
-theorem continuous_image_Icc {a b:ℝ} (hab: a < b) {f:ℝ → ℝ} (hf: ContinuousOn f (Set.Icc a b)) {y:ℝ} (hy: sInf (f '' Set.Icc a b) ≤ y ∧ y ≤ sSup (f '' Set.Icc a b)) : ∃ c ∈ Set.Icc a b, f c = y := by
+theorem continuous_image_Icc {a b:ℝ} (hab: a < b) {f:ℝ → ℝ} (hf: ContinuousOn f (.Icc a b)) {y:ℝ} (hy: sInf (f '' .Icc a b) ≤ y ∧ y ≤ sSup (f '' .Icc a b)) : ∃ c ∈ Set.Icc a b, f c = y := by
   sorry
 
-theorem continuous_image_Icc' {a b:ℝ} (hab: a < b) {f:ℝ → ℝ} (hf: ContinuousOn f (Set.Icc a b)) : f '' Set.Icc a b = Set.Icc (sInf (f '' Set.Icc a b)) (sSup (f '' Set.Icc a b)) := by
+theorem continuous_image_Icc' {a b:ℝ} (hab: a < b) {f:ℝ → ℝ} (hf: ContinuousOn f (.Icc a b)) : f '' .Icc a b = .Icc (sInf (f '' .Icc a b)) (sSup (f '' .Icc a b)) := by
   sorry
 
 /-- Exercise 9.7.2 -/
-theorem exists_fixed_pt {f:ℝ → ℝ} (hf: ContinuousOn f (Set.Icc 0 1)) (hmap: f '' Set.Icc 0 1 ⊆ Set.Icc 0 1) : ∃ x ∈ Set.Icc 0 1, f x = x := by
+theorem exists_fixed_pt {f:ℝ → ℝ} (hf: ContinuousOn f (.Icc 0 1)) (hmap: f '' .Icc 0 1 ⊆ .Icc 0 1) : ∃ x ∈ Set.Icc 0 1, f x = x := by
   sorry
 
 end Chapter9

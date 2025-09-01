@@ -17,6 +17,12 @@ Main constructions and results of this section:
 - nth roots.
 - Raising a real to a rational number.
 
+## Tips from past users
+
+Users of the companion who have completed the exercises in this section are welcome to send their tips for future users in this section as PRs.
+
+- (Add tip here)
+
 -/
 
 namespace Chapter5
@@ -28,10 +34,7 @@ lemma Real.pow_zero (x: Real) : x ^ 0 = 1 := rfl
 
 lemma Real.pow_succ (x: Real) (n:ℕ) : x ^ (n+1) = (x ^ n) * x := rfl
 
-lemma Real.pow_of_coe (q: ℚ) (n:ℕ) : (q:Real) ^ n = (q ^ n:ℚ) := by
-  induction' n with n hn; simp
-  simp [hn]
-
+lemma Real.pow_of_coe (q: ℚ) (n:ℕ) : (q:Real) ^ n = (q ^ n:ℚ) := by induction' n with n hn <;> simp
 
 /- The claims below can be handled easily by existing Mathlib API (as `Real` already is known
 to be a `Field`), but the spirit of the exercises is to adapt the proofs of
@@ -63,7 +66,6 @@ theorem Real.pow_gt_pow (x y:Real) (n:ℕ) (hxy: x > y) (hy: y ≥ 0) (hn: n > 0
 
 /-- Analogue of Proposition 4.3.10(d) -/
 theorem Real.pow_abs (x:Real) (n:ℕ) : |x|^n = |x^n| := by sorry
-
 
 /-- Definition 5.6.2 (Exponentiating a real by an integer). Here we use the Mathlib definition coming from `DivInvMonoid`. -/
 lemma Real.pow_eq_pow (x: Real) (n:ℕ): x ^ (n:ℤ) = x ^ n := by rfl
@@ -110,7 +112,7 @@ theorem Real.rootset_nonempty {x:Real} (hx: x ≥ 0) (n:ℕ) (hn: n ≥ 1) : { y
 theorem Real.rootset_bddAbove {x:Real} (hx: x ≥ 0) (n:ℕ) (hn: n ≥ 1) : BddAbove { y:Real | y ≥ 0 ∧ y^n ≤ x } := by
   -- This proof is written to follow the structure of the original text.
   rw [_root_.bddAbove_def]
-  rcases le_or_gt x 1 with h | h
+  obtain h | h := le_or_gt x 1
   . use 1; intro y hy; simp at hy
     by_contra! hy'
     replace hy' : 1 < y^n := by
@@ -162,7 +164,7 @@ theorem Real.pow_cancel {y z:Real} (hy: y > 0) (hz: z > 0) {n:ℕ} (hn: n ≥ 1)
   (h: y^n = z^n) : y = z := by sorry
 
 example : ¬(∀ (y:Real) (z:Real) (n:ℕ) (_: n ≥ 1) (_: y^n = z^n), y = z) := by
-  simp; exact ⟨ (-3), 3, 2, by norm_num, by norm_num, by norm_num ⟩
+  simp; refine ⟨ (-3), 3, 2, ?_, ?_, ?_ ⟩ <;> norm_num
 
 /-- Definition 5.6.7 -/
 noncomputable abbrev Real.ratPow (x:Real) (q:ℚ) : Real := (x.root q.den)^(q.num)
@@ -171,8 +173,7 @@ noncomputable instance Real.instRatPow : Pow Real ℚ where
   pow x q := x.ratPow q
 
 theorem Rat.eq_quot (q:ℚ) : ∃ a:ℤ, ∃ b:ℕ, b > 0 ∧ q = a / b := by
-  use q.num, q.den
-  have := q.den_nz
+  use q.num, q.den; have := q.den_nz
   refine ⟨ by omega, (Rat.num_div_den q).symm ⟩
 
 /-- Lemma 5.6.8 -/
@@ -182,37 +183,28 @@ theorem Real.pow_root_eq_pow_root {a a':ℤ} {b b':ℕ} (hb: b > 0) (hb' : b' > 
   -- This proof is written to follow the structure of the original text.
   wlog ha: a > 0 generalizing a b a' b'
   . simp at ha
-    rcases le_iff_lt_or_eq.mp ha with ha | ha
+    obtain ha | ha := le_iff_lt_or_eq.mp ha
     . replace hq : ((-a:ℤ)/b:ℚ) = ((-a':ℤ)/b':ℚ) := by
-        push_cast at hq ⊢; ring_nf at hq ⊢; simp [hq]
+        push_cast at *; ring_nf at *; simp [hq]
       specialize this hb hb' hq (by linarith)
       simpa [zpow_neg] using this
     have : a' = 0 := by sorry
-    simp [ha, this]
+    simp_all
   have : a' > 0 := by sorry
   field_simp at hq
-  lift a to ℕ using le_of_lt ha
-  lift a' to ℕ using le_of_lt this
-  norm_cast at hq this ha ⊢
+  lift a to ℕ using by order
+  lift a' to ℕ using by order
+  norm_cast at *
   set y := x.root (a*b')
-  have h1 : y = (x.root b').root a := by
-    rw [root_root (by linarith) (by linarith) (by linarith), mul_comm]
-  have h2 : y = (x.root b).root a' := by
-    rw [root_root (by linarith) (by linarith) (by linarith), mul_comm, ←hq]
-  have h3 : y^a = x.root b' := by
-    rw [h1]; apply pow_of_root (root_nonneg (by linarith) (by linarith)) (by linarith)
-  have h4 : y^a' = x.root b := by
-    rw [h2]; apply pow_of_root (root_nonneg (by linarith) (by linarith)) (by linarith)
-  calc
-    _ = (y^a)^a' := by rw [h3]
-    _ = y^(a*a') := pow_mul _ _ _
-    _ = y^(a'*a) := by rw [mul_comm]
-    _ = (y^a')^a := (pow_mul _ _ _).symm
-    _ = _ := by rw [h4]
+  have h1 : y = (x.root b').root a := by rw [root_root, mul_comm] <;> linarith
+  have h2 : y = (x.root b).root a' := by rw [root_root, mul_comm, ←hq] <;> linarith
+  have h3 : y^a = x.root b' := by rw [h1]; apply pow_of_root (root_nonneg _ _) <;> linarith
+  have h4 : y^a' = x.root b := by rw [h2]; apply pow_of_root (root_nonneg _ _) <;> linarith
+  rw [←h3, pow_mul, mul_comm, ←pow_mul, h4]
 
 theorem Real.ratPow_def {x:Real} (hx: x > 0) (a:ℤ) {b:ℕ} (hb: b > 0) : x^(a/b:ℚ) = (x.root b)^a := by
   set q := (a/b:ℚ)
-  convert Real.pow_root_eq_pow_root hb _ _ hx
+  convert pow_root_eq_pow_root hb _ _ hx
   . have := q.den_nz; omega
   rw [Rat.num_div_den q]
 

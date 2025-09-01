@@ -56,11 +56,9 @@ theorem Sequence.limit_point_iff_subseq (a:ℕ → ℝ) (L:ℝ) :
 theorem Sequence.convergent_of_subseq_of_bounded {a:ℕ→ ℝ} (ha: (a:Sequence).IsBounded) :
     ∃ b:ℕ → ℝ, Sequence.subseq a b ∧ (b:Sequence).Convergent := by
   -- This proof is written to follow the structure of the original text.
-  obtain ⟨ ⟨ L_plus, hL_plus ⟩, ⟨ L_minus, hL_minus ⟩ ⟩ := finite_limsup_liminf_of_bounded ha
+  obtain ⟨ ⟨ L_plus, hL_plus ⟩, ⟨ _, _ ⟩ ⟩ := finite_limsup_liminf_of_bounded ha
   have := limit_point_of_limsup hL_plus
-  rw [limit_point_iff_subseq] at this
-  obtain ⟨ b, hsubseq, htends ⟩ := this
-  refine ⟨ b, hsubseq, ⟨ L_plus, htends ⟩ ⟩
+  rw [limit_point_iff_subseq] at this; peel 2 this; solve_by_elim
 
 /- Exercise 6.6.2 -/
 

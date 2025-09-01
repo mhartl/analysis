@@ -48,7 +48,7 @@ example : ∃ ε > 0, ∀ x, 0 < x ∧ x < ε → sin x > x / 2 := by
     exact hy2.trans hx
   pick_goal 3  -- Now it is time to pick ε
   . exact π/3
-  exact this
+  . exact this
   positivity
 
 open Real in

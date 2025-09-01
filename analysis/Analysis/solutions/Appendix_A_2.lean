@@ -1,5 +1,4 @@
 import Mathlib.Tactic
-set_option trace.Meta.Tactic.simp.rewrite true
 
 /-!
 # Analysis I, Appendix A.2: Implication
@@ -44,9 +43,6 @@ example : ¬ ((2+2=4) → (4+4)=2) := by
   norm_num
 
 example {X Y: Prop} : (X → Y) ↔ (Y ≥ X) := by simp
--- or
-example {X Y: Prop} : (X → Y) ↔ (Y ≥ X) := by tauto
-
 
 example {X Y: Prop} : (X → Y) ↔ ((¬X) ≥ ¬Y) := by simp; tauto
 
@@ -76,7 +72,7 @@ example : ((2+2:ℤ)=5) → (4=(10-4:ℤ)) := by
 /-- Theorem A.2.4 -/
 theorem theorem_A_2_4 (n:ℤ) : Even (n * (n+1)) := by
   have : Even n ∨ Odd n := Int.even_or_odd n
-  rcases this with heven | hodd
+  obtain heven | hodd := this  -- can also use `rcases this with heven | hodd`
   . exact Even.mul_right heven _
   have : Even (n+1) := Odd.add_one hodd
   exact Even.mul_left this _
@@ -92,8 +88,6 @@ example : ∀ x:ℝ, x = 2 → x^2 = 4 := by
   norm_num
 
 example : ¬ ∀ x:ℝ, x^2 = 4 → x = 2 := by
-  -- Use the quantifier negation law and the conditional law
-  -- to get ∃ x, x^2 = 4 ∧ ¬x = 2
   simp
   use -2
   norm_cast

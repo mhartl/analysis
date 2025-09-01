@@ -25,6 +25,13 @@ Main constructions and results of this section:
 
 Note: here (and in the sequel) we use Mathlib's natural numbers `ℕ` and integers `ℤ` rather than
 the Chapter 2 natural numbers and Section 4.1 integers.
+
+## Tips from past users
+
+Users of the companion who have completed the exercises in this section are welcome to send their tips for future users in this section as PRs.
+
+- (Add tip here)
+
 -/
 
 namespace Section_4_2
@@ -62,7 +69,7 @@ theorem Rat.eq (a c:ℤ) {b d:ℤ} (hb: b ≠ 0) (hd: d ≠ 0): a // b = c // d 
 /-- Definition 4.2.1 (Rationals) -/
 theorem Rat.eq_diff (n:Rat) : ∃ a b, b ≠ 0 ∧ n = a // b := by
   apply Quot.ind _ n; intro ⟨ a, b, h ⟩
-  use a, b; refine ⟨ h, ?_ ⟩
+  refine ⟨ a, b, h, ?_ ⟩
   simp [formalDiv, h]; rfl
 
 /--
@@ -122,6 +129,9 @@ theorem Rat.coe_Nat_eq (n:ℕ) : (n:Rat) = n // 1 := rfl
 
 theorem Rat.of_Nat_eq (n:ℕ) : (ofNat(n):Rat) = (ofNat(n):Nat) // 1 := rfl
 
+/-- natCast distributes over successor -/
+theorem Rat.natCast_succ (n: ℕ) : ((n + 1: ℕ): Rat) = (n: Rat) + 1 := by sorry
+
 /-- intCast distributes over addition -/
 lemma Rat.intCast_add (a b:ℤ) : (a:Rat) + (b:Rat) = (a+b:ℤ) := by sorry
 
@@ -153,13 +163,12 @@ instance Rat.addGroup_inst : AddGroup Rat :=
 AddGroup.ofLeftAxioms (by
   -- this proof is written to follow the structure of the original text.
   intro x y z
-  obtain ⟨ a, b, hb , rfl ⟩ := eq_diff x
-  obtain ⟨ c, d, hd , rfl ⟩ := eq_diff y
-  obtain ⟨ e, f, hf , rfl ⟩ := eq_diff z
-  have hbd : b*d ≠ 0 := Int.mul_ne_zero hb hd
-  have hdf : d*f ≠ 0 := Int.mul_ne_zero hd hf
-  have hbdf : b*d*f ≠ 0 := Int.mul_ne_zero hbd hf
-
+  obtain ⟨ a, b, hb, rfl ⟩ := eq_diff x
+  obtain ⟨ c, d, hd, rfl ⟩ := eq_diff y
+  obtain ⟨ e, f, hf, rfl ⟩ := eq_diff z
+  have hbd : b*d ≠ 0 := Int.mul_ne_zero hb hd     -- can also use `observe hbd : b*d ≠ 0` here
+  have hdf : d*f ≠ 0 := Int.mul_ne_zero hd hf     -- can also use `observe hdf : d*f ≠ 0` here
+  have hbdf : b*d*f ≠ 0 := Int.mul_ne_zero hbd hf -- can also use `observe hbdf : b*d*f ≠ 0` here
   rw [add_eq _ _ hb hd, add_eq _ _ hbd hf, add_eq _ _ hd hf,
       add_eq _ _ hb hdf, ←mul_assoc b, eq _ _ hbdf hbdf]
   ring
@@ -184,10 +193,15 @@ instance Rat.instCommRing : CommRing Rat where
   zero_mul := by sorry
   mul_zero := by sorry
   mul_assoc := by sorry
-  natCast_succ := by sorry
+  -- Usually CommRing will generate a natCast instance and a proof for this.
+  -- However, we are using a custom natCast for which `natCast_succ` cannot
+  -- be proven automatically by `rfl`. Luckily we have proven it already.
+  natCast_succ := natCast_succ
 
 instance Rat.instRatCast : RatCast Rat where
   ratCast q := q.num // q.den
+
+theorem Rat.ratCast_inj : Function.Injective (fun n:ℚ ↦ (n:Rat)) := by sorry
 
 theorem Rat.coe_Rat_eq (a:ℤ) {b:ℤ} (hb: b ≠ 0) : (a/b:ℚ) = a // b := by
   set q := (a/b:ℚ)
@@ -198,7 +212,7 @@ theorem Rat.coe_Rat_eq (a:ℤ) {b:ℤ} (hb: b ≠ 0) : (a/b:ℚ) = a // b := by
   rw [eq _ _ hden hb]
   qify
   have hq : num / den = q := Rat.num_div_den q
-  rwa [div_eq_div_iff _ _] at hq <;> simp [hden, hb]
+  rwa [div_eq_div_iff] at hq <;> simp [hden, hb]
 
 /-- Default definition of division -/
 instance Rat.instDivInvMonoid : DivInvMonoid Rat where
@@ -217,7 +231,7 @@ instance Rat.instField : Field Rat where
     have hden : (den:ℤ) ≠ 0 := by simp [den, q.den_nz]
     rw [← Rat.num_div_den q]
     convert coe_Rat_eq _ hden
-    rw [coe_Int_eq, coe_Nat_eq, div_eq, inv_eq, mul_eq, eq] <;> simp [num, hden, den, q.den_nz]
+    rw [coe_Int_eq, coe_Nat_eq, div_eq, inv_eq, mul_eq, eq] <;> simp [num, den, q.den_nz]
   qsmul := _
   nnqsmul := _
 
@@ -229,18 +243,6 @@ def Rat.coe_int_hom : ℤ →+* Rat where
   map_one' := rfl
   map_add' := by sorry
   map_mul' := by sorry
-
-/--
-  (Not from textbook) The textbook rationals are isomorphic (as a field) to the Mathlib rationals.
--/
-def Rat.equiv_rat : ℚ ≃+* Rat where
-  toFun n := (n:Rat)
-  invFun := by sorry
-  map_add' := by sorry
-  map_mul' := by sorry
-  left_inv := by sorry
-  right_inv := by sorry
-
 
 /-- Definition 4.2.6 (positivity) -/
 def Rat.isPos (q:Rat) : Prop := ∃ a b:ℤ, a > 0 ∧ b > 0 ∧ q = a/b
@@ -275,7 +277,7 @@ theorem Rat.gt_iff (x y:Rat) : x > y ↔ (x-y).isPos := by sorry
 theorem Rat.ge_iff (x y:Rat) : x ≥ y ↔ (x > y) ∨ (x = y) := by sorry
 
 /-- Proposition 4.2.9(a) (order trichotomy) / Exercise 4.2.5 -/
-theorem Rat.trichotomous' (x y z:Rat) : x > y ∨ x < y ∨ x = y := by sorry
+theorem Rat.trichotomous' (x y:Rat) : x > y ∨ x < y ∨ x = y := by sorry
 
 /-- Proposition 4.2.9(a) (order trichotomy) / Exercise 4.2.5 -/
 theorem Rat.not_gt_and_lt (x y:Rat) : ¬ (x > y ∧ x < y):= by sorry
@@ -305,7 +307,7 @@ instance Rat.decidableRel : DecidableRel (· ≤ · : Rat → Rat → Prop) := b
       Decidable (Quotient.mk PreRat.instSetoid n ≤ Quotient.mk PreRat.instSetoid m) := by
     intro ⟨ a,b,hb ⟩ ⟨ c,d,hd ⟩
     -- at this point, the goal is morally `Decidable(a//b ≤ c//d)`, but there are technical
-    -- issues due to the junk value of formal divisionwhen the denominator vanishes.
+    -- issues due to the junk value of formal division when the denominator vanishes.
     -- It may be more convenient to avoid formal division and work directly with `Quotient.mk`.
     cases (0:ℤ).decLe (b*d) with
       | isTrue hbd =>
@@ -330,7 +332,7 @@ instance Rat.decidableRel : DecidableRel (· ≤ · : Rat → Rat → Prop) := b
 instance Rat.instLinearOrder : LinearOrder Rat where
   le_refl := sorry
   le_trans := sorry
-  lt_iff_le_not_le := sorry
+  lt_iff_le_not_ge := sorry
   le_antisymm := sorry
   le_total := sorry
   toDecidableLE := decidableRel
@@ -356,7 +358,7 @@ theorem Rat.mul_lt_mul_right_of_neg (x y z:Rat) (hxy: x < y) (hz: z.isNeg) : x *
 abbrev Rat.equivRat : Rat ≃ ℚ where
   toFun := Quotient.lift (fun ⟨ a, b, h ⟩ ↦ a / b) (by
     sorry)
-  invFun := sorry
+  invFun := fun n: ℚ ↦ (n:Rat)
   left_inv n := sorry
   right_inv n := sorry
 
@@ -370,5 +372,10 @@ abbrev Rat.equivRat_ring : Rat ≃+* ℚ where
   toEquiv := equivRat
   map_add' := by sorry
   map_mul' := by sorry
+
+/--
+  (Not from textbook) The textbook rationals are isomorphic (as a field) to the Mathlib rationals.
+-/
+def Rat.equivRat_ring_symm : ℚ ≃+* Rat := Rat.equivRat_ring.symm
 
 end Section_4_2

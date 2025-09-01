@@ -17,6 +17,13 @@ Main constructions and results of this section:
 
 - Russell's paradox (ruling out the axiom of universal specification).
 - The axiom of regularity (foundation) - an axiom designed to avoid Russell's paradox.
+
+## Tips from past users
+
+Users of the companion who have completed the exercises in this section are welcome to send their tips for future users in this section as PRs.
+
+- (Add tip here)
+
 --/
 
 namespace Chapter3
@@ -33,7 +40,7 @@ theorem Russells_paradox : ¬ axiom_of_universal_specification := by
   -- This proof is written to follow the structure of the original text.
   intro h
   set P : Object → Prop := fun x ↦ ∃ X:Set, x = X ∧ x ∉ X
-  obtain ⟨Ω, hΩ⟩ := h P
+  choose Ω hΩ using h P
   by_cases h: (Ω:Object) ∈ Ω
   . have : P (Ω:Object) := (hΩ _).mp h
     obtain ⟨ Ω', ⟨ hΩ1, hΩ2⟩ ⟩ := this
@@ -41,13 +48,13 @@ theorem Russells_paradox : ¬ axiom_of_universal_specification := by
     rw [←hΩ1] at hΩ2
     contradiction
   have : P (Ω:Object) := by use Ω
-  replace this := (hΩ _).mpr this
+  rw [←hΩ] at this
   contradiction
 
 /-- Axiom 3.9 (Regularity) -/
 theorem SetTheory.Set.axiom_of_regularity {A:Set} (h: A ≠ ∅) :
     ∃ x:A, ∀ S:Set, x.val = S → Disjoint S A := by
-  obtain ⟨ x, h, h' ⟩ := SetTheory.regularity_axiom A (nonempty_def h)
+  choose x h h' using regularity_axiom A (nonempty_def h)
   use ⟨x, h⟩
   intro S hS; specialize h' S hS
   rw [disjoint_iff, eq_empty_iff_forall_notMem]

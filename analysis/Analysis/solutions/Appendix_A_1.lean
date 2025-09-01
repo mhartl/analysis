@@ -1,7 +1,5 @@
 import Mathlib.Tactic
 
--- set_option trace.Meta.Tactic.simp.rewrite true
-
 /-!
 # Analysis I, Appendix A.1: Mathematical Statements
 
@@ -16,31 +14,15 @@ An introduction to mathematical statements.  Showcases some basic tactics and Le
 #check 2+2=5
 
 /-- Every well-formed statement is either true or false... -/
-example (P:Prop) : (P=true) ∨ (P=false) := by
-  -- Here `simp` simplifies `(P=true) ∨ (P=false)` to `P ∨ ¬P`.
-  -- As an example, `P=false ≡ ¬P` is derived as follows:
-  -- P=false ≡ P = False
-  --         ≡ P ↔ False
-  --         ≡ (P → F) ∧ (F → P)
-  --         ≡ (P → F) ∧ T
-  --         ≡ P → F              Identity law
-  --         ≡ ¬P ∨ F             Conditional law
-  --         ≡ ¬P                 Identity law
-  -- Combining this with `P=true ≡ P` yields `P ∨ ¬P`,
-  -- which is tautologically true by the negation law (`tauto`).
-  simp
-  tauto
+example (P:Prop) : (P=true) ∨ (P=false) := by simp; tauto
 
 /-- .. but not both. -/
-example (P:Prop) : ¬ ((P=true) ∧ (P=false)) := by
-  simp
+example (P:Prop) : ¬ ((P=true) ∧ (P=false)) := by simp
 
 -- Note: `P=true` and `P=false` simplify to `P` and `¬P` respectively.
 
 /-- To prove that a statement is true, it suffices to show that it is not false, -/
-example {P:Prop} (h: P ≠ false) : P = true := by
-  simp
-  tauto
+example {P:Prop} (h: P ≠ false) : P = true := by simp; tauto
 
 /-- while to show that a statement is false, it suffices to show that it is not true. -/
 example {P:Prop} (h: P ≠ true) : P = false := by simp; tauto
@@ -67,22 +49,12 @@ example {X Y: Prop} (hX: X) (hY: Y) : X ∧ Y := by
   . exact hX
   exact hY
 
- example {X Y : Prop} (hX : X) (hY : Y) : X ∧ Y := by
-  apply And.intro
-  . exact hX
-  exact hY
-
 example {X Y: Prop} (hXY: X ∧ Y) : X := by
   exact hXY.1
 
 example {X Y: Prop} (hXY: X ∧ Y) : Y := by
   exact hXY.2
 
-example {X Y: Prop} (hXY: X ∧ Y) : X := by
-  exact hXY.1
-
--- See https://grok.com/chat/15ec4439-a44a-4554-824f-349119176970
--- for an explanation.
 example {X Y: Prop} (hX: ¬ X) : ¬ (X ∧ Y) := by
   contrapose! hX
   exact hX.1
@@ -106,17 +78,13 @@ example {X Y: Prop} (hY: Y) : X ∨ Y := by
   exact hY
 
 example {X Y: Prop} (hX: ¬ X) (hY: ¬ Y) : ¬ (X ∨ Y) := by
-  simp          -- Applies De Morgan's law to get `¬X ∧ ¬Y`.
+  simp
   constructor
   . exact hX
   exact hY
 
 example : (2+2=4) ∨ (3+3=5) := by
   left
-  norm_num
-
-example : (2+2=5) ∨ (3+3=6) := by
-  right
   norm_num
 
 example : ¬ ((2+2=5) ∨ (3+3=5)) := by
@@ -135,7 +103,7 @@ example : (2+2=4) ∨ (2353 + 5931 = 7284) := by
   left
   norm_num
 
-#check Xor'       -- Xor' is defined in Mathlib.
+#check Xor'
 
 /-- Negation -/
 example {X:Prop} : (¬ X = true) ↔ (X = false) := by simp
@@ -175,15 +143,6 @@ example (x:ℤ) : ¬ (Even x ∨ Odd x) ↔ (¬ Even x ∧ ¬ Odd x) := by
 example (X:Prop) : ¬ (¬ X) ↔ X := by
   simp
 
--- I wondered why `tauto` didn't work in the previous example,
--- but it turns out it does.
-example (X:Prop) : ¬ (¬ X) ↔ X := by
-  tauto
-
--- Likewise, `simp` works in the preceding example.
-example (x:ℤ) : ¬ (Even x ∨ Odd x) ↔ (¬ Even x ∧ ¬ Odd x) := by
-  simp
-
 /-- If and only if (iff) -/
 example {X Y: Prop} (hXY: X ↔ Y) (hX: X) : Y := by
   rw [hXY] at hX
@@ -219,17 +178,6 @@ example {X Y: Prop} (hXY: X ↔ Y) (hX: ¬ X) : ¬ Y := by
   rw [←hXY] at this
   contradiction
 
--- Note that, contrary to my expectations (based largely on JavaScript),
--- in the example above `this` is not a keyword by rather is just a
--- dummy variable.
-example {X Y: Prop} (hXY: X ↔ Y) (hX: ¬ X) : ¬ Y := by
-  by_contra foobar
-  rw [←hXY] at foobar
-  -- Automatically looks for a contradiction in the current hypotheses
-  contradiction
-  -- There is one since the previous steps establishes `X`, which
-  -- contradicts `hX`.
-
 example : (2+2=5) ↔ (4+4=10) := by
   simp
 
@@ -243,8 +191,7 @@ example {X Y Z:Prop} (h: [X,Y,Z].TFAE) : X ↔ Y := by
   exact h.out 0 1
 
 /-- Exercise A.1.1.  Fill in the first `sorry` with something reasonable. -/
-example {X Y:Prop} : ¬ ((X ∨ Y) ∧ ¬ (X ∧ Y)) ↔ (¬ (X ∨ Y) ∨ (X ∧ Y))
-  := by tauto
+example {X Y:Prop} : ¬ ((X ∨ Y) ∧ ¬ (X ∧ Y)) ↔ sorry := by sorry
 
 /-- Exercise A.1.2.  Fill in the first `sorry` with something reasonable. -/
 example {X Y:Prop} : ¬ (X ↔ Y) ↔ sorry := by sorry

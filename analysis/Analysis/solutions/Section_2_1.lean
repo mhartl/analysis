@@ -105,9 +105,9 @@ theorem Nat.six_ne_two : (6:Nat) ≠ 2 := by
 -- this proof is written to follow the structure of the original text.
   by_contra h
   change 5++ = 1++ at h
-  replace h := succ_cancel h
+  apply succ_cancel at h
   change 4++ = 0++ at h
-  replace h := succ_cancel h
+  apply succ_cancel at h
   have := four_ne
   contradiction
 
@@ -153,7 +153,7 @@ theorem Nat.eq_recurse (f: Nat → Nat → Nat) (c: Nat) (a: Nat → Nat) :
     rw [hsucc n, recurse_succ, hn]
   intro h
   rw [h]
-  constructor
+  constructor -- could also use `split_ands` or `and_intros` here
   . exact recurse_zero _ _
   exact recurse_succ _ _
 
@@ -162,7 +162,7 @@ theorem Nat.eq_recurse (f: Nat → Nat → Nat) (c: Nat) (a: Nat → Nat) :
 theorem Nat.recurse_uniq (f: Nat → Nat → Nat) (c: Nat) :
     ∃! (a: Nat → Nat), a 0 = c ∧ ∀ n, a (n++) = f n (a n) := by
   apply ExistsUnique.intro (recurse f c)
-  . constructor
+  . constructor -- could also use `split_ands` or `and_intros` here
     . exact recurse_zero _ _
     . exact recurse_succ _ _
   intro a
