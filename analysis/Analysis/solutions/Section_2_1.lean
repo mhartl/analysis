@@ -46,6 +46,8 @@ instance Nat.instZero : Zero Nat := ⟨ zero ⟩
 #check (0:Nat)
 
 /-- Axiom 2.2 (Successor of a natural number is a natural number) -/
+-- The `100` in `postfix:100` indicates a high precedence, so that `++` binds
+-- strongly to any variables to which it is applied. –MDH
 postfix:100 "++" => Nat.succ
 #check (fun n ↦ n++)
 
@@ -81,7 +83,7 @@ theorem Nat.succ_ne (n:Nat) : n++ ≠ 0 := by
 theorem Nat.four_ne : (4:Nat) ≠ 0 := by
   -- By definition, 4 = 3++.
   change 3++ ≠ 0
-  -- By axiom 2.3, 3++ is not zero.
+  -- By Axiom 2.3, 3++ is not zero.
   exact succ_ne _
 
 /--
